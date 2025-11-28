@@ -1,0 +1,64 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+	--radius-sm: calc(var(--radius) - 4px);
+	--radius-md: calc(var(--radius) - 2px);
+	--radius-lg: var(--radius);
+	--radius-xl: calc(var(--radius) + 4px);
+	--color-background: var(--background);
+	--color-foreground: var(--foreground);
+	--color-border: var(--border);
+	--color-ring: var(--ring);
+	--color-card: var(--card);
+	--color-card-foreground: var(--card-foreground);
+	--color-primary: var(--primary);
+	--color-primary-foreground: var(--primary-foreground);
+	--color-secondary: var(--secondary);
+	--color-secondary-foreground: var(--secondary-foreground);
+	--color-accent: var(--accent);
+	--color-accent-foreground: var(--accent-foreground);
+}
+
+:root {
+	--radius: 0.5rem;
+
+	--card: hsl(210, 40%, 96%);
+	--card-foreground: hsl(215, 25%, 25%);
+	--border: hsl(210, 50%, 90%);
+	--ring: hsl(205, 70%, 70%);
+	--background: hsl(210, 60%, 99%);
+	--foreground: hsl(215, 25%, 25%);
+	--primary: hsl(205, 60%, 50%);
+	--primary-foreground: hsl(210, 60%, 99%);
+	--secondary: hsl(210, 50%, 95%);
+	--secondary-foreground: hsl(215, 25%, 30%);
+	--accent: hsl(205, 65%, 65%);
+	--accent-foreground: hsl(210, 60%, 99%);
+}
+
+.dark {
+	--background: hsl(215, 30%, 4%);
+	--foreground: hsl(210, 40%, 95%);
+	--border: hsl(215, 25%, 25%);
+	--ring: hsl(205, 75%, 70%);
+	--card: hsl(215, 30%, 10%);
+	--card-foreground: hsl(210, 40%, 95%);
+	--primary: hsl(205, 75%, 70%);
+	--primary-foreground: hsl(215, 30%, 10%);
+	--secondary: hsl(215, 25%, 15%);
+	--secondary-foreground: hsl(210, 40%, 92%);
+	--accent: hsl(205, 65%, 80%);
+	--accent-foreground: hsl(215, 30%, 10%);
+}
+
+@layer base {
+	* {
+		@apply border-border outline-ring/50 font-sans antialiased;
+	}
+	body {
+		@apply bg-background text-foreground;
+	}
+}

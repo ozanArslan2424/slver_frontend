@@ -1,0 +1,69 @@
+{
+	"title": "Şeyler",
+	"form": {
+		"fields": {
+			"title": {
+				"label": "Yeni bir şey",
+				"title": "Buraya yapılacak şeyin içeriğini yazıyorsun.",
+				"error": "Her şeyin bir içeriği olmalı"
+			},
+			"dueDate": {
+				"label": "Teslim tarihi"
+			}
+		},
+		"submit": "Gönder",
+		"cancel": "Vazgeç"
+	},
+	"detail": {
+		"label": "Detayları gör",
+		"title": "{{id}} kimlikli şeyin detayları",
+		"description": "Bir şeyin detay diyalogu",
+		"fields": {
+			"id": {
+				"label": "ID"
+			},
+			"createdAt": {
+				"label": "{{date}} tarihinde gönderildi."
+			},
+			"dueDate": {
+				"labelNotDone": "Teslim tarihi {{date}}.",
+				"labelDone": "{{date}} tarihinde teslim edildi."
+			},
+			"isDone": {
+				"label": "{{date}} tarihinde bitti."
+			},
+			"assignedTo": {
+				"nobody": "Buna kimse bakmıyor.",
+				"somebody": "Buna {{name}} bakıyor."
+			}
+		}
+	},
+	"update": {
+		"label": "Güncelle",
+		"title": "Bu şeyi güncelle",
+		"description": "Bir şeyi güncelleme diyalogu"
+	},
+	"assign": {
+		"label": "Birisine ata"
+	},
+	"done": {
+		"title": "Bitti",
+		"label": "Bitti olarak işaretle",
+		"description": "Bitti olarak işaretlemek için buraya taşı"
+	},
+	"notDone": {
+		"label": "Bitmedi olarak işaretle",
+		"description": "Bitmedi olarak işaretlemek için buraya taşı"
+	},
+	"remove": {
+		"label": "Sil",
+		"confirm": {
+			"title": "Bu şey tamamen silinecek",
+			"description": "Bir şey bir kere silindiğinde geri getirilemez. Emin misiniz?",
+			"error": "Hiçbir şey seçilmemiş!"
+		}
+	},
+	"retry": {
+		"create": "Oluşturulamadı, tekrar denemek için buraya tıkla."
+	}
+}

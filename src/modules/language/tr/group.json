@@ -1,0 +1,29 @@
+{
+	"noGroup": "İnsanları görebilmek için bir gruba girmeli veya yeni grup oluşturmalısın.",
+	"form": {
+		"fields": {
+			"title": {
+				"label": "Grup adı",
+				"error": "Bütün grupların bir adı olmalı"
+			},
+			"join": {
+				"title": "{{groupName}} grubuna davet edildin",
+				"label": "Davet kodunu buraya girebilirsin",
+				"placeholder": "Grup şifresi",
+				"error": "Grup şifresi en az 6 karakter olmalı"
+			},
+			"email": {
+				"label": "E-posta"
+			},
+			"role": {
+				"label": "Admin olarak davet et",
+				"admin": "Admin",
+				"user": "Kulanıcı"
+			}
+		},
+		"create": "Grup oluştur",
+		"join": "Gruba katıl",
+		"invite": "Gruba davet et",
+		"cancel": "Vazgeç"
+	}
+}

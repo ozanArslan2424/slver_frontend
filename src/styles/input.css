@@ -1,0 +1,29 @@
+@import "./theme.css";
+
+@layer base {
+	input:not(.unset),
+	textarea:not(.unset),
+	.input-like {
+		@apply placeholder:text-foreground/50 min-h-10 transition-all outline-none disabled:opacity-70;
+
+		&.ghost {
+			@apply text-foreground text-xl font-bold outline-none focus:outline-none;
+		}
+
+		&:not(.ghost) {
+			@apply hover:border-primary bg-background ring-ring border-border/70 rounded-md border px-3 py-2 text-sm shadow-xs;
+		}
+	}
+
+	label:not(.unset) {
+		@apply text-foreground/70 text-sm font-semibold;
+
+		&.sublabel {
+			@apply text-xs;
+		}
+
+		&.error {
+			@apply text-rose-500;
+		}
+	}
+}

@@ -1,0 +1,69 @@
+{
+	"title": "Things",
+	"form": {
+		"fields": {
+			"title": {
+				"label": "New thing",
+				"title": "This is where you write the contents of the thing to save it.",
+				"error": "Everything must have some content"
+			},
+			"dueDate": {
+				"label": "Due date"
+			}
+		},
+		"submit": "Submit",
+		"cancel": "Cancel"
+	},
+	"detail": {
+		"label": "See details",
+		"title": "Thing detail dialog for thing id: {{id}}",
+		"description": "This is the detail dialog for a thing.",
+		"fields": {
+			"id": {
+				"label": "ID"
+			},
+			"createdAt": {
+				"label": "Submitted on {{date}}."
+			},
+			"dueDate": {
+				"labelNotDone": "Due {{date}}.",
+				"labelDone": "This thing was due {{date}}."
+			},
+			"isDone": {
+				"label": "Done as of {{date}}"
+			},
+			"assignedTo": {
+				"nobody": "Nobody is on this.",
+				"somebody": "{{name}} is on this."
+			}
+		}
+	},
+	"update": {
+		"label": "Update",
+		"title": "Update this thing",
+		"description": "This is the form dialog for updating a thing's contents"
+	},
+	"assign": {
+		"label": "Assign to someone"
+	},
+	"done": {
+		"title": "Done",
+		"label": "Mark as done",
+		"description": "Drag here to mark as done"
+	},
+	"notDone": {
+		"label": "Mark as NOT done",
+		"description": "Drag here to mark as NOT done"
+	},
+	"remove": {
+		"label": "Delete",
+		"confirm": {
+			"title": "You are about to delete this thing forever.",
+			"description": "Once a thing is deleted, it stays deleted. Are you sure?",
+			"error": "Nothing selected!"
+		}
+	},
+	"retry": {
+		"create": "Failed to create, click to retry."
+	}
+}

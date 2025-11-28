@@ -1,0 +1,29 @@
+{
+	"noGroup": "You need to create or join a group to see people on your dashboard.",
+	"form": {
+		"fields": {
+			"title": {
+				"label": "Group name",
+				"error": "All groups must have a name"
+			},
+			"join": {
+				"title": "You've been invited to {{groupName}}",
+				"label": "Enter you invite code here",
+				"placeholder": "Group password",
+				"error": "Password must be at least 6 characters"
+			},
+			"email": {
+				"label": "Email"
+			},
+			"role": {
+				"label": "Invite as Admin",
+				"admin": "Admin",
+				"user": "User"
+			}
+		},
+		"create": "Create group",
+		"join": "Join group",
+		"invite": "Invite to group",
+		"cancel": "Cancel"
+	}
+}

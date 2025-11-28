@@ -1,0 +1,46 @@
+{
+	"app": {
+		"name": "slver"
+	},
+
+	"language": "Turkish",
+
+	"login": "Login",
+	"register": "Register",
+	"logout": "Logout",
+	"dashboard": "Dashboard",
+
+	"searchPlaceholder": "Search...",
+	"searchDialogOpen": "Open Search Dialog",
+
+	"noData": "No data available",
+	"noResults": "No results.",
+
+	"loading": "Loading...",
+	"error": "An error occurred. Please try again.",
+
+	"more": "More",
+	"less": "Less",
+
+	"create": "Create",
+	"update": "Update",
+	"delete": "Delete",
+	"clear": "Clear",
+	"confirm": "Confirm",
+	"cancel": "Cancel",
+	"close": "Close",
+	"join": "Join",
+
+	"pagination": {
+		"limit": "Items per page",
+		"previous": "Previous",
+		"next": "Next",
+		"page": "Page",
+		"of": "of",
+		"selected": "selected",
+		"firstPage": "Go to first page",
+		"lastPage": "Go to last page",
+		"prevPage": "Go to previous page",
+		"nextPage": "Go to next page"
+	}
+}

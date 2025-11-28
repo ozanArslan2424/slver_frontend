@@ -1,0 +1,15 @@
+{
+	"quickActions": "Quick Actions",
+	"search": {
+		"placeholder": "Search...",
+		"emptyMessage": "No results found"
+	},
+
+	"/": "slver",
+
+	"/login": "Login",
+	"/register": "Register",
+	"/forgot-password": "Forgot Password",
+
+	"/dashboard": "Dashboard"
+}
