@@ -1,14 +1,23 @@
-import { createContext, use, type Dispatch, type ReactNode, type SetStateAction } from "react";
+import {
+	createContext,
+	use,
+	useCallback,
+	useRef,
+	type Dispatch,
+	type ReactNode,
+	type SetStateAction,
+} from "react";
 import { useState } from "react";
 import type { KeyboardMode } from "@/modules/keyboard/keyboard.schema";
 
 const ModeContext = createContext<{
 	mode: KeyboardMode;
-	setMode: Dispatch<SetStateAction<KeyboardMode>>;
+	setMode: (value: KeyboardMode) => void;
 	currentFocusIndex: number;
 	setCurrentFocusIndex: Dispatch<SetStateAction<number>>;
 	keysBuffer: string[];
 	setKeysBuffer: Dispatch<SetStateAction<string[]>>;
+	getPreviousMode: () => KeyboardMode;
 } | null>(null);
 
 export function useModeContext() {
@@ -18,12 +27,26 @@ export function useModeContext() {
 }
 
 export function ModeProvider({ children }: { children: ReactNode }) {
-	const [mode, setMode] = useState<KeyboardMode>("normal");
+	const [mode, setModeState] = useState<KeyboardMode>("normal");
 	const [keysBuffer, setKeysBuffer] = useState<string[]>([]);
 	const [currentFocusIndex, setCurrentFocusIndex] = useState(0);
 
+	const previousModeRef = useRef<KeyboardMode>("normal");
+
+	const setMode = useCallback(
+		(value: KeyboardMode) => {
+			previousModeRef.current = mode;
+			setModeState(value);
+		},
+		[mode],
+	);
+
+	const getPreviousMode = useCallback((): KeyboardMode => {
+		return previousModeRef.current;
+	}, []);
+
 	return (
-		<ModeContext
+		<ModeContext.Provider
 			value={{
 				mode,
 				setMode,
@@ -31,9 +54,10 @@ export function ModeProvider({ children }: { children: ReactNode }) {
 				setKeysBuffer,
 				currentFocusIndex,
 				setCurrentFocusIndex,
+				getPreviousMode,
 			}}
 		>
 			{children}
-		</ModeContext>
+		</ModeContext.Provider>
 	);
 }

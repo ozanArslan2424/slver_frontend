@@ -31,7 +31,7 @@ export function useKeyboardModule(els: KeyboardElement[]) {
 				return;
 			}
 
-			if (["ArrowLeft", "ArrowUp"].includes(e.code)) {
+			if (["ArrowLeft", "ArrowUp", "Backspace"].includes(e.code)) {
 				e.preventDefault();
 				const totalEls = elementRefs.current.length;
 				setCurrentFocusIndex((currentFocusIndex - 1 + totalEls) % totalEls);
@@ -67,28 +67,42 @@ export function useKeyboardModule(els: KeyboardElement[]) {
 			if (!isEscapeKey) return;
 			setMode("normal");
 			setKeysBuffer([]);
-			setCurrentFocusIndex(0);
 			if (inputRef.current) {
 				inputRef.current.blur();
 				inputRef.current = null;
 			}
 		},
-		[mode, setMode, setKeysBuffer, setCurrentFocusIndex],
+		[mode, setMode, setKeysBuffer],
 	);
 
 	const handleKeySequence = useCallback(
 		(e: KeyboardEvent) => {
-			switch (e.code) {
-				case "KeyV":
-					setMode("visual");
-					break;
-				default:
-					break;
+			setKeysBuffer((prev) => [...prev, e.code]);
+
+			const isNumKey = isValidIndex(parseInt(e.key), els);
+			if (isNumKey) {
+				e.preventDefault();
+				setMode("visual");
+				setCurrentFocusIndex(parseInt(e.key));
+				return;
 			}
 
-			setKeysBuffer((prev) => [...prev, e.code]);
+			const isNavKey = [
+				"ArrowLeft",
+				"ArrowDown",
+				"Tab",
+				"ArrowUp",
+				"ArrowRight",
+				"Backspace",
+			].includes(e.code);
+
+			if (isNavKey) {
+				e.preventDefault();
+				setMode("visual");
+				return;
+			}
 		},
-		[setMode, setKeysBuffer],
+		[els, setKeysBuffer, setMode, setCurrentFocusIndex],
 	);
 
 	const handleKeyDown = useCallback(
@@ -163,7 +177,18 @@ export function useKeyboardModule(els: KeyboardElement[]) {
 	const getIsFocused = useCallback(
 		(id: string): boolean => {
 			if (mode !== "visual" && mode !== "action") return false;
-			return currentFocusIndex === els.findIndex((el) => el.id === id);
+
+			const isFocused = currentFocusIndex === els.findIndex((el) => el.id === id);
+
+			if (isFocused) {
+				// Find and scroll the element into view
+				const element = document.getElementById(id);
+				if (element) {
+					element.scrollIntoView();
+				}
+			}
+
+			return isFocused;
 		},
 		[els, mode, currentFocusIndex],
 	);

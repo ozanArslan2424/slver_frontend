@@ -41,7 +41,7 @@ export function ThingDetailDialog({ thingModule, keyboardModule }: ThingDetailDi
 			}}
 		>
 			<div className="flex flex-col gap-3 p-2">
-				<pre className="text-foreground bg-muted/10 max-w-full overflow-auto rounded-md px-1 pb-4 font-sans font-semibold wrap-break-word whitespace-pre-wrap">
+				<pre className="max-w-full overflow-auto rounded-md px-1 pb-4 font-sans font-semibold wrap-break-word whitespace-pre-wrap">
 					{thing.content}
 				</pre>
 

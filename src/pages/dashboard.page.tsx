@@ -30,8 +30,8 @@ export function DashboardPage() {
 			? thingModule.els.detail
 			: [
 					...(authModule.noGroup
-						? groupModule.els.noGroup
-						: [...groupModule.els.yesGroup, ...personModule.els]),
+						? [groupModule.els.noGroup]
+						: [groupModule.els.yesGroup, ...personModule.els]),
 					...thingModule.els.form,
 					...thingModule.els.notDone,
 					...thingModule.els.done,
@@ -84,7 +84,7 @@ export function DashboardPage() {
 			<AssignDialog variant="thing" thingModule={thingModule} personModule={personModule} />
 			<AssignDialog variant="person" thingModule={thingModule} personModule={personModule} />
 
-			<div className="grid grid-cols-12 gap-8">
+			<div className="grid grid-cols-12 gap-8 pb-20">
 				<div className="col-span-4 hidden sm:block">
 					<div className="flex flex-1 flex-col gap-3">
 						<h1

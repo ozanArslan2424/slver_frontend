@@ -215,6 +215,7 @@ export function useThingModule() {
 		],
 		done: (listQuery.data ?? [])
 			.filter((t) => t.isDone)
+			.sort((a, b) => handleSortByDate(a, b, "done"))
 			.map((t) => ({
 				id: prefixId(t.id, "thing"),
 				keyActions: {
@@ -226,6 +227,7 @@ export function useThingModule() {
 			})),
 		notDone: (listQuery.data ?? [])
 			.filter((t) => !t.isDone)
+			.sort((a, b) => handleSortByDate(a, b, "notDone"))
 			.map((t) => ({
 				id: prefixId(t.id, "thing"),
 				keyActions: {

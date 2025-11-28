@@ -31,7 +31,7 @@ export function AppHeader() {
 	const iconClassName = "size-4";
 
 	return (
-		<header className="flex h-10 shrink-0 items-center justify-between border-y">
+		<header className="bg-background sticky top-0 z-50 flex h-10 shrink-0 items-center justify-between border-y">
 			<div className="flex items-center px-4 lg:px-12">
 				<h1 className="text-lg font-bold">{t("app.name")}</h1>
 			</div>

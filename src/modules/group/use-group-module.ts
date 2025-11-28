@@ -81,31 +81,22 @@ export function useGroupModule() {
 	});
 
 	const els: {
-		noGroup: KeyboardElement[];
-		yesGroup: KeyboardElement[];
+		noGroup: KeyboardElement;
+		yesGroup: KeyboardElement;
 	} = {
-		noGroup: [
-			{
-				id: prefixId("create", "group"),
-				keyActions: {
-					Enter: () => createInputRef.current?.focus(),
-				},
+		noGroup: {
+			id: prefixId("create", "group"),
+			keyActions: {
+				Enter: () => createInputRef.current?.focus(),
 			},
-			{
-				id: prefixId("join", "group"),
-				keyActions: {
-					Enter: () => joinInputRef.current?.focus(),
-				},
+		},
+
+		yesGroup: {
+			id: prefixId("invite", "group"),
+			keyActions: {
+				Enter: () => inviteInputRef.current?.focus(),
 			},
-		],
-		yesGroup: [
-			{
-				id: prefixId("invite", "group"),
-				keyActions: {
-					Enter: () => inviteInputRef.current?.focus(),
-				},
-			},
-		],
+		},
 	};
 
 	return {

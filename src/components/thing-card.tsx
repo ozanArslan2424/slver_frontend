@@ -24,7 +24,9 @@ export function ThingCard({ thing, className, ...rest }: ThingCardProps) {
 		>
 			<div className="flex items-start justify-between gap-3">
 				<div className="flex flex-1 flex-col">
-					<p className="flex-1 pb-2 text-sm font-semibold">{thing.content}</p>
+					<p className="max-w-full flex-1 overflow-auto rounded-md pb-2 font-sans text-sm font-semibold wrap-break-word whitespace-pre-wrap">
+						{thing.content}
+					</p>
 
 					<p className="text-foreground/70 text-xs">
 						{thing.assignedTo
