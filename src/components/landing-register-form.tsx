@@ -16,7 +16,7 @@ export function LandingRegisterForm({ authModule }: LandingRegisterFormProps) {
 	const submitLabel = t("register.submit");
 
 	return (
-		<form className="flex flex-col gap-4 px-2 pt-6" {...form.methods}>
+		<form className="flex flex-col gap-3 px-2 pt-6 sm:gap-4" {...form.methods}>
 			<div className="flex items-center gap-3">
 				<div className="squircle xl primary">
 					<UserIcon />

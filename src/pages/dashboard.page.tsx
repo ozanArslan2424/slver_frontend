@@ -14,16 +14,17 @@ import { ThingList } from "@/components/thing-list";
 import { PersonList } from "@/components/person-list";
 import { AssignDialog } from "@/components/thing-assign-dialog";
 import { useKeyboardModule } from "@/modules/keyboard/use-keyboard-module";
-import { ActionDialog } from "@/components/dialogs/action-dialog";
+import { ActionDialog } from "@/components/modals/action-dialog";
 import { GroupJoinForm } from "@/components/group-join-form";
 import { GroupInviteForm } from "@/components/group-invite-form";
-import { ThingRetryCard } from "@/components/thing-retry-card";
 import { ThingRemoveDialog } from "@/components/thing-remove-dialog";
 import { PersonRemoveDialog } from "@/components/person-remove-dialog";
 import { useEffect } from "react";
 import type { SlimItem } from "@/modules/keyboard/keyboard.schema";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export function DashboardPage() {
+	const isMobile = useIsMobile();
 	const authMod = useAuthModule();
 	const thingMod = useThingModule();
 	const personMod = usePersonModule();
@@ -201,8 +202,11 @@ export function DashboardPage() {
 					<div className="flex flex-1 flex-col gap-3">
 						<h1 className="text-xl font-bold">{thingMod.t("title")}</h1>
 						<ThingForm thingModule={thingMod} keyboardModule={keyboardMod} />
-						<ThingRetryCard thingModule={thingMod} />
-						<ThingDoneCard thingModule={thingMod} dnd={dnd} variant="notDone" />
+						<ThingDoneCard
+							thingModule={thingMod}
+							dnd={dnd}
+							variant={isMobile ? "done" : "notDone"}
+						/>
 						<ThingList
 							thingModule={thingMod}
 							keyboardModule={keyboardMod}
@@ -215,7 +219,11 @@ export function DashboardPage() {
 				<div className="col-span-12 md:col-span-4">
 					<div className="flex flex-1 flex-col gap-3">
 						<h1 className="text-xl font-bold">{thingMod.t("done.title")}</h1>
-						<ThingDoneCard thingModule={thingMod} dnd={dnd} variant="done" />
+						<ThingDoneCard
+							thingModule={thingMod}
+							dnd={dnd}
+							variant={isMobile ? "notDone" : "done"}
+						/>
 						<ThingList
 							thingModule={thingMod}
 							keyboardModule={keyboardMod}

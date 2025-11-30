@@ -1,7 +1,9 @@
+import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import { useModeContext } from "@/modules/keyboard/mode.context";
 
 export function AppFooter() {
+	const isMobile = useIsMobile();
 	const { mode, keyBuffer: keysBuffer } = useModeContext();
 
 	const modeColors = {
@@ -9,6 +11,7 @@ export function AppFooter() {
 		visual: "bg-fuchsia-600 text-white",
 		action: "bg-amber-600 text-white",
 		insert: "bg-emerald-600 text-white",
+		mobile: "bg-gray-600 text-gray-300",
 	};
 
 	function getKeyLabel(code: string) {
@@ -47,15 +50,15 @@ export function AppFooter() {
 	}
 
 	return (
-		<footer className="bg-background fixed bottom-0 left-0 flex h-8 w-full shrink-0 items-center justify-between border-y">
+		<footer className="bg-background fixed bottom-0 left-0 flex h-6 w-full shrink-0 items-center justify-between border-y sm:h-8">
 			<div className="flex items-center px-4 lg:px-12">
 				<div
 					className={cn(
-						"inline-flex h-8 items-center justify-center border-y px-4 text-sm font-semibold uppercase select-none",
-						modeColors[mode],
+						"inline-flex h-6 items-center justify-center border-y px-4 text-xs font-black uppercase select-none sm:h-8 sm:text-sm sm:font-semibold",
+						modeColors[isMobile ? "mobile" : mode],
 					)}
 				>
-					{mode}
+					{isMobile ? "mobile" : mode}
 				</div>
 				<div className="text-secondary-foreground inline-flex h-8 max-w-[200px] items-center justify-end overflow-hidden border-y px-4 text-right font-mono text-sm whitespace-nowrap">
 					{keysBuffer

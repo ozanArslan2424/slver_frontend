@@ -1,3 +1,4 @@
+import { useIsMobile } from "@/hooks/use-mobile";
 import { isValidIndex } from "@/lib/utils";
 import type {
 	SlimItem,
@@ -12,6 +13,7 @@ import { useRef, useEffect, useCallback } from "react";
 export type UseKeyboardModuleReturn = ReturnType<typeof useKeyboardModule>;
 
 export function useKeyboardModule() {
+	const isMobile = useIsMobile();
 	const { focusIndex: focusIdx, mode, prevMode, dispatch } = useModeContext();
 	const focusedRef = useRef<SlimElement | null>(null);
 	const map = useRef(new Map<number, SlimMapEntry>());
@@ -144,13 +146,15 @@ export function useKeyboardModule() {
 			}
 		};
 
-		document.addEventListener("keydown", handleKeyDown);
-		document.addEventListener("dialog:close", handleDialogClose);
-		document.addEventListener("dialog:open", handleDialogOpen);
-		inputs.forEach((el) => {
-			el.addEventListener("focus", handleFocus);
-			el.addEventListener("blur", handleBlur);
-		});
+		if (!isMobile) {
+			document.addEventListener("keydown", handleKeyDown);
+			document.addEventListener("dialog:close", handleDialogClose);
+			document.addEventListener("dialog:open", handleDialogOpen);
+			inputs.forEach((el) => {
+				el.addEventListener("focus", handleFocus);
+				el.addEventListener("blur", handleBlur);
+			});
+		}
 
 		return () => {
 			document.removeEventListener("keydown", handleKeyDown);
@@ -161,7 +165,7 @@ export function useKeyboardModule() {
 				el.removeEventListener("blur", handleBlur);
 			});
 		};
-	}, [mode, prevMode, focusIdx, dispatch, handleSetItems]);
+	}, [isMobile, mode, prevMode, focusIdx, dispatch, handleSetItems]);
 
 	const register = (id: string): SlimElementProps => ({ id, tabIndex: -1 });
 

@@ -6,20 +6,23 @@ type ThingDoneCardProps = {
 	thingModule: UseThingModuleReturn;
 	dnd: UseDndReturn;
 	variant: "done" | "notDone";
+	className?: string;
 };
 
-export function ThingDoneCard({ thingModule, dnd, variant }: ThingDoneCardProps) {
+export function ThingDoneCard({ thingModule, dnd, variant, className }: ThingDoneCardProps) {
 	return (
 		<div
 			{...dnd.registerTarget({ targetId: variant })}
 			className={cn(
-				"card hidden px-4 transition-all sm:block",
+				"card px-4 transition-all",
+				"sticky top-12 z-50 sm:static sm:z-auto",
 				dnd.getIsOver(variant)
 					? "border-primary from-primary/10 to-primary/5 bg-linear-to-t py-8 opacity-100"
-					: "border-border/70 bg-card/30 dark:bg-background py-4 opacity-50",
+					: "border-border/70 bg-card/30 dark:bg-background py-4 opacity-90 sm:opacity-50",
+				className,
 			)}
 		>
-			<p className="text-center text-sm font-semibold select-none">
+			<p className="pointer-events-none text-center text-sm font-semibold select-none">
 				{thingModule.t(`${variant}.description`)}
 			</p>
 		</div>

@@ -1,3 +1,4 @@
+import { OverflowBox } from "@/components/overflow-box";
 import { PersonAvatar } from "@/components/ui/person-avatar";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/modules/language/use-language";
@@ -24,9 +25,11 @@ export function ThingCard({ thing, className, ...rest }: ThingCardProps) {
 		>
 			<div className="flex items-start justify-between gap-3">
 				<div className="flex flex-1 flex-col">
-					<p className="max-w-full flex-1 overflow-auto rounded-md pb-2 font-sans text-sm font-semibold wrap-break-word whitespace-pre-wrap">
-						{thing.content}
-					</p>
+					<OverflowBox maxHeight="sm:max-h-[100px] max-h-[40px]" gradient="from-card via-card/30">
+						<p className="max-w-full pb-2 font-sans text-sm font-semibold wrap-break-word whitespace-pre-wrap">
+							{thing.content}
+						</p>
+					</OverflowBox>
 
 					<p className="text-foreground/70 text-xs">
 						{thing.assignedTo

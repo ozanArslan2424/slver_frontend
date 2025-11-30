@@ -1,4 +1,4 @@
-import { ConfirmDialog } from "@/components/dialogs/confirm-dialog";
+import { ConfirmDialog } from "@/components/modals/confirm-dialog";
 import { cn, prefixId } from "@/lib/utils";
 import type { UseKeyboardModuleReturn } from "@/modules/keyboard/use-keyboard-module";
 import { useLanguage } from "@/modules/language/use-language";

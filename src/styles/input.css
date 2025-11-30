@@ -7,7 +7,7 @@
 		@apply placeholder:text-foreground/50 min-h-10 transition-all outline-none disabled:opacity-70;
 
 		&.ghost {
-			@apply text-foreground text-xl font-bold outline-none focus:outline-none;
+			@apply text-foreground text-lg font-bold outline-none focus:outline-none sm:text-xl;
 		}
 
 		&:not(.ghost) {

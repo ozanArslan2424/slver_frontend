@@ -47,11 +47,11 @@ export class ThingModule extends Module<ThingData> {
 		};
 	}
 
-	find(id: ThingData["id"]): ThingData | null {
+	find = (id: ThingData["id"]): ThingData | null => {
 		const queryData = this.queryModule.getQueryData<ThingData[]>([apiRoutes.thing.list]);
 		if (!queryData) return null;
 		return queryData.find((t) => t.id === id) ?? null;
-	}
+	};
 
 	readonly create = (onChange: () => void) =>
 		this.queryModule.makeOptimisticMutation<ThingCreateData, ThingData, ThingData[]>({

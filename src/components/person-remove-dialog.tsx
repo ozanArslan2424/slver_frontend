@@ -1,4 +1,4 @@
-import { ConfirmDialog } from "@/components/dialogs/confirm-dialog";
+import { ConfirmDialog } from "@/components/modals/confirm-dialog";
 import type { UsePersonModuleReturn } from "@/modules/person/use-person-module";
 
 type PersonRemoveDialogProps = {

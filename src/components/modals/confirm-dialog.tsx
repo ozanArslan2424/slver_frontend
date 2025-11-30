@@ -1,4 +1,4 @@
-import { Dialog } from "@/components/ui/dialog";
+import { Dialog } from "./dialog";
 import type { DialogState } from "@/hooks/use-dialog";
 import { cn, prefixId } from "@/lib/utils";
 import { useLanguage } from "@/modules/language/use-language";

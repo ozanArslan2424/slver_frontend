@@ -33,7 +33,7 @@ export function AppHeader() {
 	return (
 		<header className="bg-background sticky top-0 z-50 flex h-10 shrink-0 items-center justify-between border-y">
 			<div className="flex items-center px-4 lg:px-12">
-				<h1 className="text-lg font-bold">{t("app.name")}</h1>
+				<h1 className="text-lg font-bold">{t("app")}</h1>
 			</div>
 			<div className="flex items-center px-4 lg:px-12">
 				{isMounted ? (
@@ -69,8 +69,12 @@ export function AppHeader() {
 						}
 					>
 						<DropdownMenuContent align="end">
-							<DropdownMenuItem onClick={handleLanguage}>{t("language")}</DropdownMenuItem>
-							<DropdownMenuItem onClick={handleLogout}>{t("logout")}</DropdownMenuItem>
+							<DropdownMenuItem className="capitalize" onClick={handleLanguage}>
+								{t("language")}
+							</DropdownMenuItem>
+							<DropdownMenuItem className="capitalize" onClick={handleLogout}>
+								{t("logout")}
+							</DropdownMenuItem>
 						</DropdownMenuContent>
 					</DropdownMenu>
 				)}

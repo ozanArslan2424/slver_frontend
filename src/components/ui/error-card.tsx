@@ -1,10 +1,10 @@
 import { clientRoutes } from "@/client.routes";
-import { useTranslation } from "react-i18next";
+import { useLanguage } from "@/modules/language/use-language";
 import { Link } from "react-router";
 
 export function ErrorCard({ error }: { error: Error | null | string }) {
-	const { t } = useTranslation("error");
-	const title = t("unexpected");
+	const { t } = useLanguage("common");
+	const title = t("error");
 	const description = typeof error === "string" ? error : error?.message || t("retry");
 
 	return (

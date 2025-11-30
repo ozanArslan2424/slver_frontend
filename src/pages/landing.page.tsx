@@ -42,8 +42,8 @@ export function LandingPage() {
 		},
 	];
 
-	const youTitle = tLanding("app.title");
-	const youHighlight = tLanding("app.highlight");
+	const youTitle = tLanding("you.title");
+	const youHighlight = tLanding("you.highlight");
 	const youDescription = [
 		{
 			Icon: PersonStandingIcon,
@@ -69,43 +69,59 @@ export function LandingPage() {
 	return (
 		<div className="flex min-h-screen flex-col justify-between">
 			<AppHeader />
-			<div className="grid flex-1 grid-cols-3 gap-6 p-24">
+			<div className="flex flex-1 flex-col gap-6 px-4 py-8 sm:grid sm:grid-cols-2 sm:p-24 lg:grid-cols-3">
 				<div>
-					<h1 className="text-6xl leading-none font-black">
-						{appTitle} <span className="text-primary">{appHighlight}</span>
-					</h1>
-
-					<div className="flex flex-col gap-4 px-2 pt-6">
+					<div className="flex items-center justify-between">
+						<h1 className="text-3xl leading-none font-black sm:text-6xl">
+							{appTitle} <span className="text-primary">{appHighlight}</span>
+						</h1>
+						<div className="flex items-center gap-1">
+							{appDescription.map(({ Icon }, index) => (
+								<div key={index} className="squircle primary inline-flex sm:hidden">
+									<Icon />
+								</div>
+							))}
+						</div>
+					</div>
+					<div className="flex flex-col gap-4 px-2 pt-4 sm:pt-6">
 						{appDescription.map(({ Icon, label }, index) => (
 							<div key={index} className="flex items-center gap-3">
-								<div className="squircle primary xl">
+								<div className="squircle primary xl hidden sm:inline-flex">
 									<Icon />
 								</div>
-								<h2 className="text-xl font-bold">{label}</h2>
+								<h2 className="text-lg font-bold sm:text-xl">{label}</h2>
 							</div>
 						))}
 					</div>
 				</div>
 
 				<div>
-					<h1 className="text-6xl leading-none font-black">
-						{youTitle} <span className="text-primary">{youHighlight}</span>
-					</h1>
-
-					<div className="flex flex-col gap-4 px-2 pt-6">
+					<div className="flex items-center justify-between">
+						<h1 className="text-3xl leading-none font-black sm:text-6xl">
+							{youTitle} <span className="text-primary">{youHighlight}</span>
+						</h1>
+						<div className="flex items-center gap-1">
+							{youDescription.map(({ Icon }, index) => (
+								<div key={index} className="squircle primary inline-flex sm:hidden">
+									<Icon />
+								</div>
+							))}
+						</div>
+					</div>
+					<div className="flex flex-col gap-4 px-2 pt-4 sm:pt-6">
 						{youDescription.map(({ Icon, label }, index) => (
 							<div key={index} className="flex items-center gap-3">
-								<div className="squircle xl">
+								<div className="squircle xl hidden sm:inline-flex">
 									<Icon />
 								</div>
-								<h2 className="text-xl font-bold">{label}</h2>
+								<h2 className="text-lg font-bold sm:text-xl">{label}</h2>
 							</div>
 						))}
 					</div>
 				</div>
 
 				<div>
-					<h1 className="text-6xl leading-none font-black">
+					<h1 className="text-3xl leading-none font-black sm:text-6xl">
 						{startTitle} <span className="text-primary">{startHighlight}</span>
 					</h1>
 					{authModule.meQuery.data ? (

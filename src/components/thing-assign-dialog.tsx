@@ -1,4 +1,4 @@
-import { ActionDialog } from "@/components/dialogs/action-dialog";
+import { ActionDialog } from "@/components/modals/action-dialog";
 import { PersonAvatar } from "@/components/ui/person-avatar";
 import type { EntityAction } from "@/hooks/use-action-dialog";
 import { prefixId } from "@/lib/utils";

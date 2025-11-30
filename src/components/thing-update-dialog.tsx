@@ -1,4 +1,4 @@
-import { Dialog } from "@/components/ui/dialog";
+import { Dialog } from "@/components/modals/dialog";
 import { Combobox } from "@/components/form/combobox";
 import { DatePicker } from "@/components/form/date-picker";
 import { FormField } from "@/components/form/form-field";
@@ -17,9 +17,17 @@ type ThingUpdateDialogProps = {
 export function ThingUpdateDialog({ thingModule, personModule }: ThingUpdateDialogProps) {
 	const { t, timestamp } = useLanguage("thing");
 	const thing = thingModule.active;
-	const form = thingModule.updateForm;
 	const dialog = thingModule.updateDialog;
 	const textareaRef = thingModule.textareaRef;
+	const form = thingModule.updateForm;
+	const mutation = thingModule.updateMutation;
+	const isPending = mutation.isPending;
+
+	function handleRetry() {
+		if (mutation.isError) {
+			mutation.mutate(mutation.variables);
+		}
+	}
 
 	if (!thing) return null;
 	return (
@@ -33,6 +41,7 @@ export function ThingUpdateDialog({ thingModule, personModule }: ThingUpdateDial
 							required
 							className="min-h-40"
 							ref={textareaRef}
+							disabled={isPending}
 						/>
 					</FormField>
 
@@ -41,7 +50,10 @@ export function ThingUpdateDialog({ thingModule, personModule }: ThingUpdateDial
 							startDate={new Date()}
 							endDate={new Date(2040, 0, 1)}
 							renderTrigger={(open, val) => (
-								<button className="outlined neon lg w-full justify-between font-normal">
+								<button
+									className="outlined neon lg w-full justify-between font-normal"
+									disabled={isPending}
+								>
 									<div className="flex items-center gap-3">
 										<div className="squircle size-7 font-black">
 											<CalendarPlusIcon className="size-4" />
@@ -65,7 +77,10 @@ export function ThingUpdateDialog({ thingModule, personModule }: ThingUpdateDial
 								...person,
 							}))}
 							renderTrigger={(open, val) => (
-								<button className="outlined neon lg w-full justify-between font-normal">
+								<button
+									className="outlined neon lg w-full justify-between font-normal"
+									disabled={isPending}
+								>
 									<div className="flex items-center gap-3">
 										<PersonAvatar
 											person={val ? val : { name: "?", image: undefined }}
@@ -87,11 +102,21 @@ export function ThingUpdateDialog({ thingModule, personModule }: ThingUpdateDial
 					</FormField>
 				</div>
 
+				{mutation.isError && (
+					<button
+						type="button"
+						onClick={handleRetry}
+						className="unset rounded-md bg-rose-500/10 px-5 py-2 text-center text-sm font-semibold text-red-600 hover:bg-rose-500/5"
+					>
+						{t("retry.update")}
+					</button>
+				)}
+
 				<div className="grid grid-cols-3 items-center gap-2">
-					<button type="reset" className="ghost col-span-1">
+					<button type="reset" className="ghost col-span-1" disabled={isPending}>
 						{t("form.cancel")}
 					</button>
-					<button type="submit" className="col-span-2">
+					<button type="submit" className="col-span-2" disabled={isPending}>
 						{t("form.submit")}
 					</button>
 				</div>

@@ -2,6 +2,7 @@ import { DatePicker } from "@/components/form/date-picker";
 import { FormField } from "@/components/form/form-field";
 import { cn, prefixId } from "@/lib/utils";
 import type { UseKeyboardModuleReturn } from "@/modules/keyboard/use-keyboard-module";
+import { useLanguage } from "@/modules/language/use-language";
 import type { UseThingModuleReturn } from "@/modules/thing/use-thing-module";
 import { CalendarPlusIcon } from "lucide-react";
 
@@ -11,7 +12,18 @@ type ThingFormProps = {
 };
 
 export function ThingForm({ thingModule, keyboardModule }: ThingFormProps) {
+	const { t } = useLanguage("thing");
 	const id = prefixId("form", "thing");
+	const form = thingModule.createForm;
+	const mutation = thingModule.createMutation;
+	const isPending = mutation.isPending;
+	const textareaRef = thingModule.textareaRef;
+
+	function handleRetry() {
+		if (mutation.isError) {
+			mutation.mutate(mutation.variables);
+		}
+	}
 
 	return (
 		<div
@@ -21,31 +33,37 @@ export function ThingForm({ thingModule, keyboardModule }: ThingFormProps) {
 			)}
 			{...keyboardModule.register(id)}
 		>
-			<form {...thingModule.createForm.methods} className="flex flex-col gap-2">
-				<FormField form={thingModule.createForm} name="content" id="content">
+			<form {...form.methods} className="flex flex-col gap-2">
+				<FormField form={form} name="content" id="content">
 					<textarea
-						placeholder={thingModule.t("form.fields.title.label")}
-						title={thingModule.t("form.fields.title.title")}
+						placeholder={t("form.fields.title.label")}
+						title={t("form.fields.title.title")}
 						required
 						className="bg-card border-card min-h-20"
-						ref={thingModule.textareaRef}
-						disabled={thingModule.createMutation.isPending}
+						ref={textareaRef}
+						disabled={isPending}
 					/>
 				</FormField>
-				<div className="flex items-center gap-2">
-					<FormField
-						form={thingModule.createForm}
-						name="dueDate"
-						id="dueDate"
-						className="w-min max-w-min"
+
+				{mutation.isError && (
+					<button
+						type="button"
+						onClick={handleRetry}
+						className="unset rounded-md bg-rose-500/10 px-5 py-2 text-center text-sm font-semibold text-red-600 hover:bg-rose-500/5"
 					>
+						{t("retry.update")}
+					</button>
+				)}
+
+				<div className="flex items-center gap-2">
+					<FormField form={form} name="dueDate" id="dueDate" className="w-min max-w-min">
 						<DatePicker
-							placeholder={thingModule.t("form.fields.dueDate.label")}
+							placeholder={t("form.fields.dueDate.label")}
 							startDate={new Date()}
 							endDate={new Date(2040, 0, 1)}
 							renderTrigger={(open) => (
 								<button
-									disabled={thingModule.createMutation.isPending}
+									disabled={isPending}
 									type="button"
 									className={cn(
 										"square size-10 border-transparent",
@@ -60,9 +78,9 @@ export function ThingForm({ thingModule, keyboardModule }: ThingFormProps) {
 					<button
 						type="submit"
 						className="soft h-10 w-full flex-1 border-transparent"
-						disabled={thingModule.createMutation.isPending}
+						disabled={isPending}
 					>
-						{thingModule.t("form.submit")}
+						{t("form.submit")}
 					</button>
 				</div>
 			</form>

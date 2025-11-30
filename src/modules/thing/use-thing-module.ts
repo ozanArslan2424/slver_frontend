@@ -1,5 +1,5 @@
 import { useAppContext } from "@/app";
-import { useDialog } from "@/hooks/use-dialog";
+import { useModal } from "@/hooks/use-dialog";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useCallback, useMemo, useRef } from "react";
 import { toast } from "sonner";
@@ -26,14 +26,14 @@ export function useThingModule() {
 	const createMutation = useMutation(thing.create(handleReset));
 	const updateMutation = useMutation(thing.update(handleReset));
 
-	const updateDialog = useDialog();
-	const detailDialog = useDialog();
+	const updateDialog = useModal();
+	const detailDialog = useModal();
 	const assignDialog = useActionDialog({
 		actions: [],
 		title: t("assign.label"),
 		description: t("assign.label"),
 	});
-	const removeDialog = useDialog();
+	const removeDialog = useModal();
 	const actionDialog = useActionDialog({
 		actions: [
 			{

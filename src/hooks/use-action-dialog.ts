@@ -1,4 +1,4 @@
-import { useDialog } from "@/hooks/use-dialog";
+import { useModal } from "@/hooks/use-dialog";
 import { prefixId } from "@/lib/utils";
 import { type ReactNode } from "react";
 
@@ -20,6 +20,6 @@ export type UseActionDialogReturn = Omit<ReturnType<typeof useActionDialog>, "ac
 };
 
 export function useActionDialog(args: UseActionDialogArgs) {
-	const { id, ...dialog } = useDialog();
+	const { id, ...dialog } = useModal();
 	return { ...args, ...dialog, id: prefixId(id, "action") };
 }

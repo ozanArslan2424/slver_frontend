@@ -24,7 +24,7 @@ export function AuthLayout() {
 		init();
 	}, [ctx.query, ctx.auth, ctx.store, navigate]);
 
-	const appName = tCommon("app.name");
+	const appName = tCommon("app");
 	const tosLabel = tAuth("tos.label");
 
 	return (

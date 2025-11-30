@@ -5,7 +5,7 @@ import { useLanguage } from "@/modules/language/use-language";
 import { toast } from "sonner";
 import { useActionDialog } from "@/hooks/use-action-dialog";
 import { useCallback } from "react";
-import { useDialog } from "@/hooks/use-dialog";
+import { useModal } from "@/hooks/use-dialog";
 
 export type UsePersonModuleReturn = ReturnType<typeof usePersonModule>;
 
@@ -36,7 +36,7 @@ export function usePersonModule() {
 				: [{ key: "remove", label: t("remove.label"), onSelect: () => handleRemoveClick() }]),
 		],
 	});
-	const removeDialog = useDialog();
+	const removeDialog = useModal();
 
 	const handleAction = useCallback(
 		(entity: PersonData) => {

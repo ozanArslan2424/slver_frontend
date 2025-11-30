@@ -6,15 +6,15 @@ import {
 	GroupInviteSchema,
 	GroupJoinSchema,
 } from "@/modules/group/group.schema";
+import { useLanguage } from "@/modules/language/use-language";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useRef } from "react";
-import { useTranslation } from "react-i18next";
 
 export type UseGroupModuleReturn = ReturnType<typeof useGroupModule>;
 
 export function useGroupModule() {
 	const { group } = useAppContext();
-	const { t } = useTranslation("group");
+	const { t } = useLanguage("group");
 	const createInputRef = useRef<HTMLInputElement | null>(null);
 	const joinInputRef = useRef<HTMLInputElement | null>(null);
 	const inviteInputRef = useRef<HTMLInputElement | null>(null);

@@ -8,10 +8,12 @@ import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import advancedFormat from "dayjs/plugin/advancedFormat";
 import type { TUnknownObject } from "@/lib/helper.type";
+import type { locales } from "@/modules/language/language.config";
 
 type DInput = dayjs.ConfigType;
+type NS = keyof (typeof locales)["en"];
 
-export function useLanguage(ns?: string) {
+export function useLanguage(ns?: NS) {
 	const { t, i18n } = useTranslation(ns);
 	dayjs.extend(advancedFormat);
 	dayjs.extend(utc);
@@ -51,7 +53,7 @@ export function useLanguage(ns?: string) {
 		same: (compare: DInput) => dayjs(date).isSame(compare),
 	});
 
-	const makeTranslator = (ns: string) => (key: string, opts?: TUnknownObject) =>
+	const makeTranslator = (ns: NS) => (key: string, opts?: TUnknownObject) =>
 		t(key, { ns, ...opts });
 
 	return {
