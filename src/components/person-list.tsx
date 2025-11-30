@@ -58,7 +58,7 @@ export function PersonList({ personModule, keyboardModule, dnd }: PersonListProp
 				return (
 					<div
 						key={id}
-						{...keyboardModule.getElementProps(id)}
+						{...keyboardModule.register(id)}
 						{...dnd.registerSource({ sourceId: id })}
 						onClick={() => personModule.handleAction(person)}
 						style={{

@@ -1,13 +1,11 @@
 import { useAppContext } from "@/app";
 import { useForm } from "@/hooks/use-form";
 import { getErrorMessage } from "@/lib/error.utils";
-import { prefixId } from "@/lib/utils";
 import {
 	GroupCreateSchema,
 	GroupInviteSchema,
 	GroupJoinSchema,
 } from "@/modules/group/group.schema";
-import type { KeyboardElement } from "@/modules/keyboard/keyboard.schema";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useRef } from "react";
 import { useTranslation } from "react-i18next";
@@ -80,28 +78,11 @@ export function useGroupModule() {
 		},
 	});
 
-	const els: {
-		noGroup: KeyboardElement;
-		yesGroup: KeyboardElement;
-	} = {
-		noGroup: {
-			id: prefixId("create", "group"),
-			keyActions: {
-				Enter: () => createInputRef.current?.focus(),
-			},
-		},
-
-		yesGroup: {
-			id: prefixId("invite", "group"),
-			keyActions: {
-				Enter: () => inviteInputRef.current?.focus(),
-			},
-		},
-	};
+	const createAction = () => createInputRef.current?.focus();
+	const inviteAction = () => inviteInputRef.current?.focus();
 
 	return {
 		t,
-		els,
 		groupQuery,
 		groupCreateMutation,
 		groupJoinMutation,
@@ -111,5 +92,7 @@ export function useGroupModule() {
 		createInputRef,
 		joinInputRef,
 		inviteInputRef,
+		createAction,
+		inviteAction,
 	};
 }

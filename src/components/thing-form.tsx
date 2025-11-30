@@ -19,7 +19,7 @@ export function ThingForm({ thingModule, keyboardModule }: ThingFormProps) {
 				"flex h-max flex-1 flex-col gap-3 rounded-md outline-2 outline-offset-2 outline-transparent transition-all",
 				keyboardModule.getIsFocused(id) && "outline-ring",
 			)}
-			{...keyboardModule.getElementProps(id)}
+			{...keyboardModule.register(id)}
 		>
 			<form {...thingModule.createForm.methods} className="flex flex-col gap-2">
 				<FormField form={thingModule.createForm} name="content" id="content">

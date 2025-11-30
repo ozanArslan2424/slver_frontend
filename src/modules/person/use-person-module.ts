@@ -2,12 +2,10 @@ import { useAppContext } from "@/app";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import type { PersonData } from "@/modules/person/person.schema";
 import { useLanguage } from "@/modules/language/use-language";
-import { prefixId } from "@/lib/utils";
-import type { KeyboardElement } from "@/modules/keyboard/keyboard.schema";
-import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
 import { toast } from "sonner";
 import { useActionDialog } from "@/hooks/use-action-dialog";
 import { useCallback } from "react";
+import { useDialog } from "@/hooks/use-dialog";
 
 export type UsePersonModuleReturn = ReturnType<typeof usePersonModule>;
 
@@ -35,34 +33,10 @@ export function usePersonModule() {
 			},
 			...(person.active?.id === meQuery.data?.id
 				? []
-				: [
-						{
-							key: "remove",
-							label: t("remove.label"),
-							onSelect: () => handleRemoveClick(),
-						},
-					]),
+				: [{ key: "remove", label: t("remove.label"), onSelect: () => handleRemoveClick() }]),
 		],
 	});
-	const removeDialog = useConfirmDialog({
-		title: t("remove.confirm.title"),
-		description: t("remove.confirm.description"),
-		onConfirm: () => {
-			if (!person.active) {
-				toast.error(t("remove.confirm.error"));
-				return;
-			}
-			removeMutation.mutate({ personId: person.active.id });
-		},
-	});
-
-	const els: KeyboardElement[] = (listQuery.data ?? []).map((p) => ({
-		id: prefixId(p.id, "person"),
-		keyActions: {
-			Enter: () => handleAction(p),
-			x: () => handleRemoveClick(p),
-		},
-	}));
+	const removeDialog = useDialog();
 
 	const handleAction = useCallback(
 		(entity: PersonData) => {
@@ -92,6 +66,14 @@ export function usePersonModule() {
 		[person, assignDialog],
 	);
 
+	const handleConfirmRemove = useCallback(() => {
+		if (!person.active) {
+			toast.error(t("remove.confirm.error"));
+			return;
+		}
+		removeMutation.mutate({ personId: person.active.id });
+	}, [removeMutation, t, person.active]);
+
 	function handleReset() {
 		person.setActive(null);
 		actionDialog.onOpenChange(false);
@@ -103,11 +85,12 @@ export function usePersonModule() {
 		t,
 		listQuery,
 		assignMutation,
-		els,
 		active: person.active,
 		actionDialog,
 		assignDialog,
 		removeDialog,
 		handleAction,
+		handleRemoveClick,
+		handleConfirmRemove,
 	};
 }

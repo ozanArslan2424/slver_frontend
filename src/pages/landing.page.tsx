@@ -1,22 +1,17 @@
 import { clientRoutes } from "@/client.routes";
-import { FormField } from "@/components/form/form-field";
 import { LandingRegisterForm } from "@/components/landing-register-form";
 import { AppHeader } from "@/components/layout/app-header";
 import { useAuthModule } from "@/modules/auth/use-auth-module";
 import { useLanguage } from "@/modules/language/use-language";
 import {
 	AppWindowIcon,
-	AsteriskIcon,
-	AtSignIcon,
 	CircleSlashIcon,
 	ClipboardIcon,
 	Clock9Icon,
 	GroupIcon,
-	LoaderIcon,
 	PersonStandingIcon,
 	SquareDashed,
 	TargetIcon,
-	UserIcon,
 } from "lucide-react";
 import { Link } from "react-router";
 

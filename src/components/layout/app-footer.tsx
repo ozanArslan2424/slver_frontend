@@ -2,7 +2,7 @@ import { cn } from "@/lib/utils";
 import { useModeContext } from "@/modules/keyboard/mode.context";
 
 export function AppFooter() {
-	const { mode, keysBuffer } = useModeContext();
+	const { mode, keyBuffer: keysBuffer } = useModeContext();
 
 	const modeColors = {
 		normal: "bg-primary text-primary-foreground",

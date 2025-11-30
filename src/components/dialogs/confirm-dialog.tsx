@@ -1,35 +1,54 @@
 import { Dialog } from "@/components/ui/dialog";
-import type { UseConfirmDialogReturn } from "@/hooks/use-confirm-dialog";
+import type { DialogState } from "@/hooks/use-dialog";
+import { cn, prefixId } from "@/lib/utils";
+import { useLanguage } from "@/modules/language/use-language";
+import type { ComponentProps } from "react";
+
+type ConfirmDialogProps = DialogState & {
+	title: string;
+	description: string;
+	confirmProps?: Omit<ComponentProps<"button">, "onClick">;
+	cancelProps?: Omit<ComponentProps<"button">, "onClick">;
+	onCancel?: () => void;
+	onConfirm: () => void;
+};
 
 export function ConfirmDialog({
-	open,
-	onOpenChange,
-	defaultOpen,
+	confirmProps,
+	cancelProps,
 	onConfirm,
 	onCancel,
-	title,
-	description,
-	cancelText = "Cancel",
-	confirmText = "Confirm",
-}: UseConfirmDialogReturn) {
+	id,
+	...dialog
+}: ConfirmDialogProps) {
+	const { t: tCommon } = useLanguage("common");
+
+	function handleCancel() {
+		onCancel?.();
+		dialog.onOpenChange(false);
+	}
+
+	function handleConfirm() {
+		onConfirm();
+		dialog.onOpenChange(false);
+	}
+
 	return (
-		<Dialog
-			open={open}
-			onOpenChange={onOpenChange}
-			defaultOpen={defaultOpen}
-			showTitle
-			showDescription
-			title={title}
-			description={description}
-		>
+		<Dialog showTitle showDescription id={prefixId(id, "confirm")} {...dialog}>
 			<div className="grid grid-cols-3 gap-4">
-				<button onClick={onCancel} className="ghost relative col-span-1">
-					{cancelText}
-					<kbd className="absolute top-1/2 right-2 -translate-y-1/2">n</kbd>
+				<button
+					onClick={handleCancel}
+					{...cancelProps}
+					className={cn("ghost relative col-span-1", cancelProps?.className)}
+				>
+					{cancelProps?.children ?? tCommon("cancel")}
 				</button>
-				<button onClick={onConfirm} className="relative col-span-2">
-					<span>{confirmText}</span>
-					<kbd className="absolute top-1/2 right-2 -translate-y-1/2">y</kbd>
+				<button
+					onClick={handleConfirm}
+					{...confirmProps}
+					className={cn("relative col-span-2", confirmProps?.className)}
+				>
+					{confirmProps?.children ?? tCommon("confirm")}
 				</button>
 			</div>
 		</Dialog>

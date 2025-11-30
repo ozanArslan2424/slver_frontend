@@ -1,24 +1,64 @@
 import {
 	createContext,
 	use,
-	useCallback,
-	useRef,
-	type Dispatch,
+	useMemo,
+	useReducer,
+	type ActionDispatch,
 	type ReactNode,
-	type SetStateAction,
 } from "react";
-import { useState } from "react";
-import type { KeyboardMode } from "@/modules/keyboard/keyboard.schema";
+import type { SlimMode } from "@/modules/keyboard/keyboard.schema";
 
-const ModeContext = createContext<{
-	mode: KeyboardMode;
-	setMode: (value: KeyboardMode) => void;
-	currentFocusIndex: number;
-	setCurrentFocusIndex: Dispatch<SetStateAction<number>>;
-	keysBuffer: string[];
-	setKeysBuffer: Dispatch<SetStateAction<string[]>>;
-	getPreviousMode: () => KeyboardMode;
-} | null>(null);
+type State = {
+	mode: SlimMode;
+	prevMode: SlimMode;
+	keyBuffer: string[];
+	focusIndex: number;
+};
+
+type Action =
+	| { type: "setMode"; payload: SlimMode }
+	| { type: "appendKey"; payload: string }
+	| { type: "resetKeyBuffer" }
+	| { type: "increaseIndex"; payload: { total: number } }
+	| { type: "decreaseIndex"; payload: { total: number } }
+	| { type: "setIndex"; payload: number };
+
+const defaultState: State = {
+	mode: "normal",
+	prevMode: "normal",
+	keyBuffer: [],
+	focusIndex: 0,
+};
+
+const reducer = (prev: State, action: Action): State => {
+	switch (action.type) {
+		case "setMode":
+			return { ...prev, mode: action.payload, prevMode: prev.mode };
+		case "appendKey":
+			return { ...prev, keyBuffer: [...prev.keyBuffer, action.payload] };
+		case "resetKeyBuffer":
+			return { ...prev, keyBuffer: [] };
+		case "increaseIndex":
+			return {
+				...prev,
+				focusIndex: (prev.focusIndex + 1) % action.payload.total,
+			};
+		case "decreaseIndex":
+			return {
+				...prev,
+				focusIndex: (prev.focusIndex - 1 + action.payload.total) % action.payload.total,
+			};
+		case "setIndex":
+			return { ...prev, focusIndex: action.payload };
+		default:
+			return prev;
+	}
+};
+
+const ModeContext = createContext<State & { dispatch: ActionDispatch<[action: Action]> }>({
+	...defaultState,
+	dispatch: () => {},
+});
 
 export function useModeContext() {
 	const context = use(ModeContext);
@@ -27,37 +67,7 @@ export function useModeContext() {
 }
 
 export function ModeProvider({ children }: { children: ReactNode }) {
-	const [mode, setModeState] = useState<KeyboardMode>("normal");
-	const [keysBuffer, setKeysBuffer] = useState<string[]>([]);
-	const [currentFocusIndex, setCurrentFocusIndex] = useState(0);
-
-	const previousModeRef = useRef<KeyboardMode>("normal");
-
-	const setMode = useCallback(
-		(value: KeyboardMode) => {
-			previousModeRef.current = mode;
-			setModeState(value);
-		},
-		[mode],
-	);
-
-	const getPreviousMode = useCallback((): KeyboardMode => {
-		return previousModeRef.current;
-	}, []);
-
-	return (
-		<ModeContext.Provider
-			value={{
-				mode,
-				setMode,
-				keysBuffer,
-				setKeysBuffer,
-				currentFocusIndex,
-				setCurrentFocusIndex,
-				getPreviousMode,
-			}}
-		>
-			{children}
-		</ModeContext.Provider>
-	);
+	const [state, dispatch] = useReducer(reducer, defaultState);
+	const value = useMemo(() => ({ ...state, dispatch }), [state]);
+	return <ModeContext value={value}>{children}</ModeContext>;
 }

@@ -47,7 +47,7 @@ export function ThingList({ thingModule, keyboardModule, dnd, variant }: ThingLi
 						<ThingCard
 							key={id}
 							thing={thing}
-							{...keyboardModule.getElementProps(id)}
+							{...keyboardModule.register(id)}
 							{...dnd.registerSource({ sourceId: id })}
 							{...dnd.registerTarget({ targetId: id })}
 							className={cn(

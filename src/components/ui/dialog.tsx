@@ -14,6 +14,7 @@ const Description = DialogPrimitive.Description;
 const Close = DialogPrimitive.Close;
 
 type DialogProps = DialogState & {
+	id?: string;
 	showCloseButton?: boolean;
 	showTitle?: boolean;
 	showDescription?: boolean;
@@ -22,9 +23,11 @@ type DialogProps = DialogState & {
 	className?: string;
 	children: React.ReactNode;
 	closeButtonProps?: React.ComponentProps<"button">;
+	autoFocus?: boolean;
 };
 
 export function Dialog({
+	id,
 	open,
 	onOpenChange,
 	defaultOpen,
@@ -36,6 +39,7 @@ export function Dialog({
 	className,
 	children,
 	closeButtonProps,
+	autoFocus = false,
 }: DialogProps) {
 	const { t: tCommon } = useLanguage("common");
 
@@ -47,7 +51,8 @@ export function Dialog({
 					className="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/50"
 				/>
 				<Content
-					onOpenAutoFocus={(e) => e.preventDefault()}
+					id={id}
+					onOpenAutoFocus={autoFocus ? undefined : (e) => e.preventDefault()}
 					tabIndex={-1}
 					data-slot="dialog-content"
 					className={cn(

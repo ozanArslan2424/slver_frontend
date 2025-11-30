@@ -1,5 +1,4 @@
 import { useAppContext } from "@/app";
-import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
 import { useDialog } from "@/hooks/use-dialog";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useCallback, useMemo, useRef } from "react";
@@ -8,7 +7,7 @@ import { ThingCreateSchema, type ThingData } from "@/modules/thing/thing.schema"
 import { useLanguage } from "@/modules/language/use-language";
 import { prefixId } from "@/lib/utils";
 import { useForm } from "@/hooks/use-form";
-import type { KeyboardElement } from "@/modules/keyboard/keyboard.schema";
+import type { SlimItem } from "@/modules/keyboard/keyboard.schema";
 import { useActionDialog } from "@/hooks/use-action-dialog";
 
 export type UseThingModuleReturn = ReturnType<typeof useThingModule>;
@@ -34,17 +33,7 @@ export function useThingModule() {
 		title: t("assign.label"),
 		description: t("assign.label"),
 	});
-	const removeDialog = useConfirmDialog({
-		title: t("remove.confirm.title"),
-		description: t("remove.confirm.description"),
-		onConfirm: () => {
-			if (!thing.active) {
-				toast.error(t("remove.confirm.error"));
-				return;
-			}
-			removeMutation.mutate({ thingId: thing.active.id });
-		},
-	});
+	const removeDialog = useDialog();
 	const actionDialog = useActionDialog({
 		actions: [
 			{
@@ -57,7 +46,7 @@ export function useThingModule() {
 						{
 							key: "not-done",
 							label: t("notDone.label"),
-							onSelect: () => handleNotDoneClick(),
+							onSelect: () => handleDoneClick(),
 						},
 					]
 				: [
@@ -92,21 +81,17 @@ export function useThingModule() {
 		},
 	});
 
-	const defaultValues = useMemo(
-		() =>
-			thing.active
-				? {
-						content: thing.active.content,
-						dueDate: thing.active.dueDate,
-						assignedToId: thing.active.assignedToId ?? undefined,
-					}
-				: {
-						content: "",
-						dueDate: undefined,
-						assignedToId: undefined,
-					},
-		[thing.active],
-	);
+	const defaultValues = useMemo(() => {
+		const active = thing.active;
+		if (active) {
+			return {
+				content: active.content,
+				dueDate: active.dueDate,
+				assignedToId: active.assignedToId ?? undefined,
+			};
+		}
+		return { content: "", dueDate: undefined, assignedToId: undefined };
+	}, [thing.active]);
 
 	const updateForm = useForm({
 		schema: ThingCreateSchema,
@@ -182,87 +167,48 @@ export function useThingModule() {
 	);
 
 	const handleDoneClick = useCallback(
-		(entity?: ThingData) => {
+		(entity?: ThingData, value?: boolean) => {
 			const active = thing.active ?? entity;
-			if (!active || active.isDone === true) return;
-			doneMutation.mutate({ thingId: active.id, isDone: true });
+			if (!active) return;
+			const isDone = value !== undefined ? value : !active.isDone;
+			doneMutation.mutate({ thingId: active.id, isDone });
 		},
 		[thing.active, doneMutation],
 	);
 
-	const handleNotDoneClick = useCallback(
-		(entity?: ThingData) => {
-			const active = thing.active ?? entity;
-			if (!active || active.isDone === false) return;
-			doneMutation.mutate({ thingId: active.id, isDone: false });
-		},
-		[thing.active, doneMutation],
-	);
+	const handleConfirmRemove = useCallback(() => {
+		if (!thing.active) {
+			toast.error(t("remove.confirm.error"));
+			return;
+		}
+		removeMutation.mutate({ thingId: thing.active.id });
+	}, [removeMutation, t, thing.active]);
 
-	const els: {
-		form: KeyboardElement[];
-		done: KeyboardElement[];
-		notDone: KeyboardElement[];
-		detail: KeyboardElement[];
-	} = {
-		form: [
-			{
-				id: prefixId("form", "thing"),
-				keyActions: {
-					Enter: () => textareaRef.current?.focus(),
-				},
-			},
-		],
-		done: (listQuery.data ?? [])
-			.filter((t) => t.isDone)
-			.sort((a, b) => handleSortByDate(a, b, "done"))
-			.map((t) => ({
-				id: prefixId(t.id, "thing"),
-				keyActions: {
-					Enter: () => handleDetailClick(t),
-					Space: () => handleActionClick(t),
-					c: () => handleNotDoneClick(t),
-					x: () => handleRemoveClick(t),
-				},
-			})),
-		notDone: (listQuery.data ?? [])
-			.filter((t) => !t.isDone)
-			.sort((a, b) => handleSortByDate(a, b, "notDone"))
-			.map((t) => ({
-				id: prefixId(t.id, "thing"),
-				keyActions: {
-					Enter: () => handleDetailClick(t),
-					Space: () => handleActionClick(t),
-					c: () => handleDoneClick(t),
-					u: () => handleUpdateClick(t),
-					a: () => handleAssignClick(t),
-					x: () => handleRemoveClick(t),
-				},
-			})),
-		detail: [
-			{
-				id: prefixId("close", "detail"),
-				keyActions: {
-					Enter: () => detailDialog.onOpenChange(false),
-					Space: () => detailDialog.onOpenChange(false),
-				},
-			},
-			{
-				id: prefixId("update", "detail"),
-				keyActions: {
-					Enter: () => handleUpdateClick(),
-					Space: () => handleUpdateClick(),
-				},
-			},
-			{
-				id: prefixId("remove", "detail"),
-				keyActions: {
-					Enter: () => handleRemoveClick(),
-					Space: () => handleRemoveClick(),
-				},
-			},
-		],
-	};
+	const removeItems: SlimItem[] = [
+		{
+			id: prefixId("confirm", "thing_remove"),
+			actions: [{ keys: ["Enter"], fn: () => handleConfirmRemove() }],
+		},
+		{
+			id: prefixId("cancel", "thing_remove"),
+			actions: [{ keys: ["Enter"], fn: () => removeDialog.onOpenChange(false) }],
+		},
+	];
+
+	const detailItems: SlimItem[] = [
+		{
+			id: prefixId("update", "thing_detail"),
+			actions: [{ keys: ["Enter", "Space"], fn: () => handleUpdateClick() }],
+		},
+		{
+			id: prefixId("remove", "thing_detail"),
+			actions: [{ keys: ["Enter", "Space"], fn: () => handleRemoveClick(), items: removeItems }],
+		},
+		{
+			id: prefixId("close", "thing_detail"),
+			actions: [{ keys: ["Enter", "Space"], fn: () => detailDialog.onOpenChange(false) }],
+		},
+	];
 
 	function handleReset() {
 		thing.setActive(null);
@@ -285,11 +231,12 @@ export function useThingModule() {
 		}
 	}
 
+	const formAction = () => textareaRef.current?.focus();
+
 	return {
 		t,
 		find: thing.find,
 		listQuery,
-		els,
 		textareaRef,
 		createMutation,
 		updateMutation,
@@ -307,9 +254,13 @@ export function useThingModule() {
 		handleActionClick,
 		handleDetailClick,
 		handleUpdateClick,
+		handleAssignClick,
 		handleRemoveClick,
-		handleNotDoneClick,
 		handleDoneClick,
 		handleSortByDate,
+		handleConfirmRemove,
+		formAction,
+		detailItems,
+		removeItems,
 	};
 }

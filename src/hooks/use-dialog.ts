@@ -1,17 +1,33 @@
-import { useModeContext } from "@/modules/keyboard/mode.context";
-import { useCallback, useState } from "react";
-
-export function useDialog(defaultOpen?: boolean) {
-	const modeCtx = useModeContext();
-	const [open, setOpen] = useState(defaultOpen ?? false);
-
-	const handleOpenChange = useCallback((value: boolean) => {
-		setOpen(value);
-		// TODO: The mode should be action if any dialog is open, it should also be consistent from one dialog to the next
-		// modeCtx.setMode(value ? "action" : "normal");
-	}, []);
-
-	return { open, onOpenChange: handleOpenChange, defaultOpen };
-}
+import { prefixId } from "@/lib/utils";
+import { useId, useState } from "react";
 
 export type DialogState = ReturnType<typeof useDialog>;
+
+export interface DialogEvent extends CustomEvent {
+	detail: { id: string };
+}
+
+declare global {
+	interface DocumentEventMap {
+		"dialog:open": DialogEvent;
+		"dialog:close": DialogEvent;
+	}
+}
+
+export function useDialog(defaultOpen?: boolean) {
+	const [open, setOpen] = useState(defaultOpen ?? false);
+
+	const generatedId = useId();
+	const id = prefixId(generatedId, "dialog");
+
+	const onOpenChange = (value: boolean) => {
+		setOpen(value);
+		const event = new CustomEvent(`dialog:${value ? "open" : "close"}`, {
+			detail: { id },
+			bubbles: true,
+		});
+		document.dispatchEvent(event);
+	};
+
+	return { open, onOpenChange, defaultOpen, id };
+}

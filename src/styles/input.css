@@ -11,7 +11,7 @@
 		}
 
 		&:not(.ghost) {
-			@apply hover:border-primary bg-background ring-ring border-border/70 rounded-md border px-3 py-2 text-sm shadow-xs;
+			@apply hover:border-primary bg-background ring-ring border-border/70 rounded-md border px-3 py-2 text-sm shadow-xs focus-visible:ring;
 		}
 	}
 

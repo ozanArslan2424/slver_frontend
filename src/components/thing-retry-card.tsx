@@ -1,4 +1,3 @@
-import { cn } from "@/lib/utils";
 import type { UseThingModuleReturn } from "@/modules/thing/use-thing-module";
 import { useMemo } from "react";
 
@@ -7,7 +6,8 @@ type ThingDoneCardProps = {
 };
 
 export function ThingRetryCard({ thingModule }: ThingDoneCardProps) {
-	const { createMutation, updateMutation } = thingModule;
+	const createMutation = thingModule.createMutation;
+	const updateMutation = thingModule.updateMutation;
 
 	const config = useMemo(() => {
 		if (createMutation.isError) {

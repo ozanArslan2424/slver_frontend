@@ -44,9 +44,18 @@ export function prefixId(id: number | string, prefix?: string): string {
 	return id.toString().split("_")[1] as string;
 }
 
-export function isValidIndex(index: number, collection: ArrayLike<unknown>): boolean {
+export function isValidIndex(
+	index: number,
+	collection: Array<unknown> | Set<unknown> | Map<unknown, unknown>,
+): boolean {
 	if (isNaN(index)) return false;
-	return Number.isInteger(index) && index >= 0 && index < collection.length;
+	const length =
+		collection instanceof Set
+			? collection.size
+			: collection instanceof Map
+				? collection.size
+				: collection.length;
+	return Number.isInteger(index) && index >= 0 && index < length;
 }
 
 export const toBoolean = (v?: StringBoolean | boolean): boolean =>

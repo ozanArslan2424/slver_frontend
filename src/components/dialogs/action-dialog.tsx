@@ -2,7 +2,6 @@ import {
 	CommandDialog,
 	CommandEmpty,
 	CommandGroup,
-	CommandInput,
 	CommandItem,
 	CommandList,
 } from "@/components/ui/command";
@@ -13,8 +12,7 @@ export function ActionDialog({ actions, ...rest }: UseActionDialogReturn) {
 	const { t } = useLanguage("common");
 
 	return (
-		<CommandDialog showCloseButton={false} {...rest}>
-			<CommandInput placeholder={t("searchPlaceholder")} />
+		<CommandDialog showCloseButton={false} autoFocus {...rest}>
 			<CommandList>
 				<CommandEmpty>{t("noResults")}</CommandEmpty>
 				<CommandGroup>

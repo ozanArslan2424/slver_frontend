@@ -21,7 +21,7 @@ export function GroupInviteForm({ groupModule, keyboardModule }: GroupFormProps)
 				"flex h-max flex-1 flex-col gap-3 rounded-md outline-2 outline-offset-2 outline-transparent transition-all",
 				keyboardModule.getIsFocused(id) && "outline-ring",
 			)}
-			{...keyboardModule.getElementProps(id)}
+			{...keyboardModule.register(id)}
 		>
 			<form {...form.methods} className="flex flex-col gap-2">
 				<div className="flex gap-2">

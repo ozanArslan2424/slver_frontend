@@ -1,16 +1,24 @@
-import type { Ref } from "react";
+export type SlimMode = "normal" | "visual" | "action" | "insert";
 
-export type KeyboardMode = "normal" | "visual" | "action" | "insert";
-
-export type KeyboardElement = {
-	id: string;
-	keyActions: Record<string, (elId: string) => void>;
+export type SlimAction = {
+	keys: string[];
+	fn: () => void;
+	items?: SlimItem[];
 };
 
-export type El = HTMLElement;
+export type SlimItem = {
+	id: string;
+	actions: SlimAction[];
+};
 
-export type KeyboardElementProps<E extends El> = {
-	ref: Ref<E>;
+export type SlimElementProps = {
 	id: string;
 	tabIndex: number;
+};
+
+export type SlimElement = HTMLElement;
+
+export type SlimMapEntry = {
+	item: SlimItem;
+	element: SlimElement;
 };

@@ -14,29 +14,98 @@ import { ThingList } from "@/components/thing-list";
 import { PersonList } from "@/components/person-list";
 import { AssignDialog } from "@/components/thing-assign-dialog";
 import { useKeyboardModule } from "@/modules/keyboard/use-keyboard-module";
-import { ConfirmDialog } from "@/components/dialogs/confirm-dialog";
 import { ActionDialog } from "@/components/dialogs/action-dialog";
 import { GroupJoinForm } from "@/components/group-join-form";
 import { GroupInviteForm } from "@/components/group-invite-form";
 import { ThingRetryCard } from "@/components/thing-retry-card";
+import { ThingRemoveDialog } from "@/components/thing-remove-dialog";
+import { PersonRemoveDialog } from "@/components/person-remove-dialog";
+import { useEffect } from "react";
+import type { SlimItem } from "@/modules/keyboard/keyboard.schema";
 
 export function DashboardPage() {
-	const authModule = useAuthModule();
-	const thingModule = useThingModule();
-	const personModule = usePersonModule();
-	const groupModule = useGroupModule();
-	const keyboardModule = useKeyboardModule(
-		thingModule.detailDialog.open
-			? thingModule.els.detail
-			: [
-					...(authModule.noGroup
-						? [groupModule.els.noGroup]
-						: [groupModule.els.yesGroup, ...personModule.els]),
-					...thingModule.els.form,
-					...thingModule.els.notDone,
-					...thingModule.els.done,
-				],
-	);
+	const authMod = useAuthModule();
+	const thingMod = useThingModule();
+	const personMod = usePersonModule();
+	const groupMod = useGroupModule();
+
+	const keyboardMod = useKeyboardModule();
+
+	useEffect(() => {
+		const items: SlimItem[] = [];
+		if (authMod.noGroup) {
+			items.push({
+				id: prefixId("create", "group"),
+				actions: [{ keys: ["Enter"], fn: groupMod.createAction }],
+			});
+		} else {
+			items.push({
+				id: prefixId("invite", "group"),
+				actions: [{ keys: ["Enter"], fn: groupMod.inviteAction }],
+			});
+
+			personMod.listQuery.data?.forEach((p) =>
+				items.push({
+					id: prefixId(p.id, "person"),
+					actions: [
+						{ keys: ["Enter"], fn: () => personMod.handleAction(p) },
+						{ keys: ["x"], fn: () => personMod.handleRemoveClick(p) },
+					],
+				}),
+			);
+		}
+
+		items.push({
+			id: prefixId("form", "thing"),
+			actions: [{ keys: ["Enter"], fn: thingMod.formAction }],
+		});
+
+		thingMod.listQuery.data
+			?.filter((t) => !t.isDone)
+			.sort((a, b) => thingMod.handleSortByDate(a, b, "notDone"))
+			.forEach((t) => {
+				items.push({
+					id: prefixId(t.id, "thing"),
+					actions: [
+						{
+							keys: ["Enter"],
+							fn: () => thingMod.handleDetailClick(t),
+							items: thingMod.detailItems,
+						},
+						{ keys: ["Space"], fn: () => thingMod.handleActionClick(t) },
+						{ keys: ["c"], fn: () => thingMod.handleDoneClick(t) },
+						{ keys: ["u"], fn: () => thingMod.handleUpdateClick(t) },
+						{ keys: ["a"], fn: () => thingMod.handleAssignClick(t) },
+						{ keys: ["x"], fn: () => thingMod.handleRemoveClick(t), items: thingMod.removeItems },
+					],
+				});
+			});
+
+		thingMod.listQuery.data
+			?.filter((t) => t.isDone)
+			.sort((a, b) => thingMod.handleSortByDate(a, b, "done"))
+			.forEach((t) => {
+				items.push({
+					id: prefixId(t.id, "thing"),
+					actions: [
+						{
+							keys: ["Enter"],
+							fn: () => thingMod.handleDetailClick(t),
+							items: thingMod.detailItems,
+						},
+						{ keys: ["Space"], fn: () => thingMod.handleActionClick(t) },
+						{ keys: ["c"], fn: () => thingMod.handleDoneClick(t) },
+						{
+							keys: ["x"],
+							fn: () => thingMod.handleRemoveClick(t),
+							items: thingMod.removeItems,
+						},
+					],
+				});
+			});
+
+		keyboardMod.setInitialItems(items);
+	}, [keyboardMod, personMod, groupMod, thingMod, authMod.noGroup]);
 
 	const dnd = useDnd({
 		onDrop: (sourceData, targetData) => {
@@ -49,25 +118,25 @@ export function DashboardPage() {
 			if (sourceIsPerson && targetIsThing) {
 				const personId = Number(prefixId(sourceData.sourceId));
 				const thingId = Number(prefixId(targetData.targetId));
-				const thing = thingModule.find(thingId);
+				const thing = thingMod.find(thingId);
 				if (thing?.assignedToId !== personId) {
-					thingModule.assignMutation.mutate({ thingId, personId });
+					thingMod.assignMutation.mutate({ thingId, personId });
 				}
 			}
 
 			if (sourceIsThing && targetIsDone) {
 				const thingId = Number(prefixId(sourceData.sourceId));
-				const thing = thingModule.find(thingId);
+				const thing = thingMod.find(thingId);
 				if (thing) {
-					thingModule.handleDoneClick(thing);
+					thingMod.handleDoneClick(thing, true);
 				}
 			}
 
 			if (sourceIsThing && targetIsNotDone) {
 				const thingId = Number(prefixId(sourceData.sourceId));
-				const thing = thingModule.find(thingId);
+				const thing = thingMod.find(thingId);
 				if (thing) {
-					thingModule.handleNotDoneClick(thing);
+					thingMod.handleDoneClick(thing, false);
 				}
 			}
 		},
@@ -75,51 +144,51 @@ export function DashboardPage() {
 
 	return (
 		<PageContent>
-			<ActionDialog {...thingModule.actionDialog} />
-			<ActionDialog {...personModule.actionDialog} />
-			<ConfirmDialog {...thingModule.removeDialog} />
-			<ConfirmDialog {...personModule.removeDialog} />
-			<ThingDetailDialog thingModule={thingModule} keyboardModule={keyboardModule} />
-			<ThingUpdateDialog thingModule={thingModule} personModule={personModule} />
-			<AssignDialog variant="thing" thingModule={thingModule} personModule={personModule} />
-			<AssignDialog variant="person" thingModule={thingModule} personModule={personModule} />
+			<ActionDialog {...thingMod.actionDialog} />
+			<ActionDialog {...personMod.actionDialog} />
+			<ThingRemoveDialog thingModule={thingMod} keyboardModule={keyboardMod} />
+			<PersonRemoveDialog personModule={personMod} />
+			<ThingDetailDialog thingModule={thingMod} keyboardModule={keyboardMod} />
+			<ThingUpdateDialog thingModule={thingMod} personModule={personMod} />
+			<AssignDialog variant="thing" thingModule={thingMod} personModule={personMod} />
+			<AssignDialog variant="person" thingModule={thingMod} personModule={personMod} />
 
-			<div className="grid grid-cols-12 gap-8 pb-20">
+			<div className="grid grid-cols-12 gap-8 pb-14">
 				<div className="col-span-4 hidden sm:block">
 					<div className="flex flex-1 flex-col gap-3">
 						<h1
 							className={cn(
 								"font-bold",
-								authModule.noGroup ? "text-foreground/70 text-lg" : "text-xl",
+								authMod.noGroup ? "text-foreground/70 text-lg" : "text-xl",
 							)}
 						>
-							{authModule.noGroup
-								? groupModule.t("noGroup")
-								: personModule.t("titleWithGroup", {
-										groupName: groupModule.groupQuery.data?.title,
+							{authMod.noGroup
+								? groupMod.t("noGroup")
+								: personMod.t("titleWithGroup", {
+										groupName: groupMod.groupQuery.data?.title,
 									})}
 						</h1>
-						{authModule.noGroup ? (
-							<GroupCreateForm groupModule={groupModule} keyboardModule={keyboardModule} />
+						{authMod.noGroup ? (
+							<GroupCreateForm groupModule={groupMod} keyboardModule={keyboardMod} />
 						) : (
 							<div className="flex flex-col gap-3">
-								<GroupInviteForm groupModule={groupModule} keyboardModule={keyboardModule} />
-								<PersonList personModule={personModule} keyboardModule={keyboardModule} dnd={dnd} />
+								<GroupInviteForm groupModule={groupMod} keyboardModule={keyboardMod} />
+								<PersonList personModule={personMod} keyboardModule={keyboardMod} dnd={dnd} />
 							</div>
 						)}
-						{authModule.pendingMemberships && (
+						{authMod.pendingMemberships && (
 							<div className="flex flex-col gap-3">
-								{authModule.pendingMemberships.map((m) => (
+								{authMod.pendingMemberships.map((m) => (
 									<div key={m.groupId}>
 										<h1 className="mb-2 text-lg font-bold">
-											{groupModule.t("form.fields.join.title", {
+											{groupMod.t("form.fields.join.title", {
 												groupName: m.group.title,
 											})}
 										</h1>
 										<GroupJoinForm
 											key={m.groupId}
-											groupModule={groupModule}
-											keyboardModule={keyboardModule}
+											groupModule={groupMod}
+											keyboardModule={keyboardMod}
 										/>
 									</div>
 								))}
@@ -130,13 +199,13 @@ export function DashboardPage() {
 
 				<div className="col-span-12 md:col-span-4">
 					<div className="flex flex-1 flex-col gap-3">
-						<h1 className="text-xl font-bold">{thingModule.t("title")}</h1>
-						<ThingForm thingModule={thingModule} keyboardModule={keyboardModule} />
-						<ThingRetryCard thingModule={thingModule} />
-						<ThingDoneCard thingModule={thingModule} dnd={dnd} variant="notDone" />
+						<h1 className="text-xl font-bold">{thingMod.t("title")}</h1>
+						<ThingForm thingModule={thingMod} keyboardModule={keyboardMod} />
+						<ThingRetryCard thingModule={thingMod} />
+						<ThingDoneCard thingModule={thingMod} dnd={dnd} variant="notDone" />
 						<ThingList
-							thingModule={thingModule}
-							keyboardModule={keyboardModule}
+							thingModule={thingMod}
+							keyboardModule={keyboardMod}
 							dnd={dnd}
 							variant="notDone"
 						/>
@@ -145,11 +214,11 @@ export function DashboardPage() {
 
 				<div className="col-span-12 md:col-span-4">
 					<div className="flex flex-1 flex-col gap-3">
-						<h1 className="text-xl font-bold">{thingModule.t("done.title")}</h1>
-						<ThingDoneCard thingModule={thingModule} dnd={dnd} variant="done" />
+						<h1 className="text-xl font-bold">{thingMod.t("done.title")}</h1>
+						<ThingDoneCard thingModule={thingMod} dnd={dnd} variant="done" />
 						<ThingList
-							thingModule={thingModule}
-							keyboardModule={keyboardModule}
+							thingModule={thingMod}
+							keyboardModule={keyboardMod}
 							dnd={dnd}
 							variant="done"
 						/>

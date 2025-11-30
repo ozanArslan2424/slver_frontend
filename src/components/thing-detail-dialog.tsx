@@ -20,9 +20,9 @@ export function ThingDetailDialog({ thingModule, keyboardModule }: ThingDetailDi
 	const dialog = thingModule.detailDialog;
 	const iconSize = "size-5";
 	const squircleSize = "size-8.5";
-	const closeButtonId = prefixId("close", "detail");
-	const updateButtonId = prefixId("update", "detail");
-	const removeButtonId = prefixId("remove", "detail");
+	const closeButtonId = prefixId("close", "thing_detail");
+	const updateButtonId = prefixId("update", "thing_detail");
+	const removeButtonId = prefixId("remove", "thing_detail");
 
 	if (!thing) return null;
 
@@ -37,7 +37,7 @@ export function ThingDetailDialog({ thingModule, keyboardModule }: ThingDetailDi
 					"outline-2 outline-offset-2 outline-transparent",
 					keyboardModule.getIsFocused(closeButtonId) && "outline-ring",
 				),
-				...keyboardModule.getElementProps(closeButtonId),
+				...keyboardModule.register(closeButtonId),
 			}}
 		>
 			<div className="flex flex-col gap-3 p-2">
@@ -121,7 +121,7 @@ export function ThingDetailDialog({ thingModule, keyboardModule }: ThingDetailDi
 								"outline-2 outline-offset-2 outline-transparent",
 								keyboardModule.getIsFocused(updateButtonId) && "outline-ring",
 							)}
-							{...keyboardModule.getElementProps(updateButtonId)}
+							{...keyboardModule.register(updateButtonId)}
 						>
 							{t("update.label")}
 						</button>
@@ -133,7 +133,7 @@ export function ThingDetailDialog({ thingModule, keyboardModule }: ThingDetailDi
 							"outline-2 outline-offset-2 outline-transparent",
 							keyboardModule.getIsFocused(removeButtonId) && "outline-ring",
 						)}
-						{...keyboardModule.getElementProps(removeButtonId)}
+						{...keyboardModule.register(removeButtonId)}
 					>
 						{t("remove.label")}
 					</button>
