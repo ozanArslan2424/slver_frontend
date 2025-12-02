@@ -1,43 +1,50 @@
 import { useIsMobile } from "@/hooks/use-mobile";
 import { isValidIndex } from "@/lib/utils";
-import type {
-	SlimItem,
-	SlimElementProps,
-	SlimMode,
-	SlimElement,
-	SlimMapEntry,
-} from "@/modules/keyboard/keyboard.schema";
+import type { SlimItem, SlimElementProps, SlimMode } from "@/modules/keyboard/keyboard.schema";
 import { useModeContext } from "@/modules/keyboard/mode.context";
-import { useRef, useEffect, useCallback } from "react";
+import { useRef, useEffect, useCallback, useState } from "react";
 
 export type UseKeyboardModuleReturn = ReturnType<typeof useKeyboardModule>;
 
+// Simple, fast hash function for arrays
+function computeItemsHash(items: SlimItem[]): string {
+	// Fastest approach for typical array sizes
+	// Creates a simple string signature of all item IDs
+	let hash = "";
+	for (let i = 0; i < items.length; i++) {
+		hash += items[i].id;
+		if (i < items.length - 1) hash += "|"; // separator to distinguish "a|b" from "ab"
+	}
+	return hash;
+}
+
 export function useKeyboardModule() {
 	const isMobile = useIsMobile();
-	const { focusIndex: focusIdx, mode, prevMode, dispatch } = useModeContext();
-	const focusedRef = useRef<SlimElement | null>(null);
-	const map = useRef(new Map<number, SlimMapEntry>());
+	const { mode, prevMode, dispatch } = useModeContext();
+	const [currentId, setCurrentId] = useState<string | null>(null);
+	const hash = useRef<string>("");
+	const map = useRef(new Map<string, SlimItem>());
 
-	const handleSetItems = useCallback(
-		(items: SlimItem[]) => {
-			requestAnimationFrame(() => {
-				map.current.clear();
+	const handleSetItems = useCallback((items: SlimItem[]) => {
+		const currentHash = computeItemsHash(items);
+		if (currentHash === hash.current) {
+			return;
+		}
+		hash.current = currentHash;
 
-				for (const [index, subItem] of items.entries()) {
-					const element = document.getElementById(subItem.id);
-					if (!element) continue;
-					map.current.set(index, { item: subItem, element });
-				}
-
-				dispatch({ type: "setIndex", payload: 0 });
-			});
-		},
-		[dispatch],
-	);
+		requestAnimationFrame(() => {
+			map.current.clear();
+			console.count("cleared");
+			for (const item of items) {
+				const element = document.getElementById(item.id);
+				if (!element) continue;
+				map.current.set(item.id, item);
+			}
+		});
+	}, []);
 
 	useEffect(() => {
 		const inputs = document.querySelectorAll("input, textarea");
-
 		const decreaseKeys = ["ArrowLeft", "ArrowUp", "Backspace"];
 		const increaseKeys = ["ArrowRight", "ArrowDown", "Tab"];
 		const navigateKeys = [...decreaseKeys, ...increaseKeys];
@@ -53,10 +60,16 @@ export function useKeyboardModule() {
 			}
 
 			dispatch({ type: "resetKeyBuffer" });
-			focusedRef.current?.blur();
-			focusedRef.current = null;
+		};
 
-			map.current.clear();
+		const handleIndex = (updater: number | ((prevIdx: number) => number)) => {
+			const ids = Array.from(map.current.keys());
+			const max = ids.length - 1;
+			const prevIdx = currentId ? ids.findIndex((id) => id === currentId) : 0;
+			const input = typeof updater === "function" ? updater(prevIdx) : updater;
+			const nextIdx = input > max ? 0 : input < 0 ? max : input;
+			const id = ids[nextIdx];
+			setCurrentId(id);
 		};
 
 		const handleKeySequence = (e: KeyboardEvent) => {
@@ -64,36 +77,41 @@ export function useKeyboardModule() {
 
 			if (isValidIndex(parseInt(e.key), map.current)) {
 				e.preventDefault();
-				dispatch({ type: "setIndex", payload: parseInt(e.key) });
+				handleIndex(parseInt(e.key));
 				dispatch({ type: "setMode", payload: "visual" });
 			} else if (navigateKeys.includes(e.code)) {
 				e.preventDefault();
+				handleIndex(0);
 				dispatch({ type: "setMode", payload: "visual" });
 			}
 		};
 
 		const handleNavigate = (e: KeyboardEvent) => {
 			if (isValidIndex(parseInt(e.key), map.current)) {
+				// number button click
 				e.preventDefault();
-				dispatch({ type: "setIndex", payload: parseInt(e.key) });
+				handleIndex(parseInt(e.key));
 			} else if (increaseKeys.includes(e.code)) {
+				// next button click
 				e.preventDefault();
-				dispatch({ type: "increaseIndex", payload: { total: map.current.size } });
+				handleIndex((p) => p + 1);
 			} else if (decreaseKeys.includes(e.code)) {
+				// prev button click
 				e.preventDefault();
-				dispatch({ type: "decreaseIndex", payload: { total: map.current.size } });
+				handleIndex((p) => p - 1);
 			} else {
-				const entry = map.current.get(focusIdx);
+				// else check if action button was clicked
+				const entry = currentId ? map.current.get(currentId) : null;
 
 				if (!entry) return;
 
 				const keyPress = e.key === " " ? "Space" : e.key;
-				const action = entry.item.actions.find((action) => action.keys.includes(keyPress));
+				const action = entry.actions.find((action) => action.keys.includes(keyPress));
 
 				if (!action) return;
 
 				e.preventDefault();
-				console.log(action.fn.toString());
+
 				action.fn();
 				if (action.items) {
 					dispatch({ type: "setMode", payload: "action" });
@@ -102,24 +120,13 @@ export function useKeyboardModule() {
 			}
 		};
 
-		const handleFocus = (e: Event) => {
-			focusedRef.current = e.currentTarget as SlimElement;
-			dispatch({ type: "setMode", payload: "insert" });
-		};
-
-		const handleBlur = () => {
-			dispatch({ type: "setMode", payload: "normal" });
-		};
-
-		const handleDialogOpen = (e: CustomEvent) => {
-			console.count(`dialog:open ${e.detail.id}`);
+		const handleDialogOpen = () => {
 			if (mode !== "action") {
 				dispatch({ type: "setMode", payload: "action" });
 			}
 		};
 
-		const handleDialogClose = (e: CustomEvent) => {
-			console.count(`dialog:close ${e.detail.id}`);
+		const handleDialogClose = () => {
 			dispatch({ type: "setMode", payload: "normal" });
 		};
 
@@ -146,13 +153,30 @@ export function useKeyboardModule() {
 			}
 		};
 
+		const handleInputFocus = () => {
+			dispatch({ type: "setMode", payload: "insert" });
+		};
+
+		const handleInputBlur = () => {
+			dispatch({ type: "setMode", payload: "normal" });
+		};
+
+		const handleInputKeyDown = (e: Event) => {
+			if ("key" in e && typeof e.key === "string" && escapeKeys.includes(e.key)) {
+				e.preventDefault();
+				const target = e.target as HTMLInputElement | HTMLTextAreaElement;
+				target.blur();
+			}
+		};
+
 		if (!isMobile) {
 			document.addEventListener("keydown", handleKeyDown);
 			document.addEventListener("dialog:close", handleDialogClose);
 			document.addEventListener("dialog:open", handleDialogOpen);
-			inputs.forEach((el) => {
-				el.addEventListener("focus", handleFocus);
-				el.addEventListener("blur", handleBlur);
+			inputs.forEach((input) => {
+				input.addEventListener("keydown", handleInputKeyDown);
+				input.addEventListener("focus", handleInputFocus);
+				input.addEventListener("blur", handleInputBlur);
 			});
 		}
 
@@ -160,43 +184,45 @@ export function useKeyboardModule() {
 			document.removeEventListener("keydown", handleKeyDown);
 			document.removeEventListener("dialog:close", handleDialogClose);
 			document.removeEventListener("dialog:open", handleDialogOpen);
-			inputs.forEach((el) => {
-				el.removeEventListener("focus", handleFocus);
-				el.removeEventListener("blur", handleBlur);
+			inputs.forEach((input) => {
+				input.removeEventListener("keydown", handleInputKeyDown);
+				input.removeEventListener("focus", handleInputFocus);
+				input.removeEventListener("blur", handleInputBlur);
 			});
 		};
-	}, [isMobile, mode, prevMode, focusIdx, dispatch, handleSetItems]);
+	}, [isMobile, mode, prevMode, dispatch, handleSetItems, currentId]);
 
-	const register = (id: string): SlimElementProps => ({ id, tabIndex: -1 });
+	const register = (id: string): SlimElementProps => ({
+		id,
+		tabIndex: -1,
+		"data-visual-item": true,
+	});
 
 	const getIsFocused = (id: string): boolean => {
 		const focusableModes: SlimMode[] = ["visual", "action"];
+		if (!currentId) return false;
 
-		if (!focusableModes.includes(mode)) return false;
+		if (focusableModes.includes(mode)) {
+			const isFocused = currentId === id;
 
-		const entry = map.current.get(focusIdx);
-		const isFocused = entry !== undefined && entry.item.id === id;
+			if (isFocused) {
+				document
+					.getElementById(id)
+					?.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" });
+			}
 
-		if (isFocused) {
-			entry.element.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" });
+			return isFocused;
 		}
 
-		return isFocused;
+		return false;
 	};
 
 	const setInitialItems = (initialItems: SlimItem[]) => {
 		if (mode !== "action") {
-			for (const [index, item] of initialItems.entries()) {
-				const has = map.current.get(index);
-				const seen = has && has.item.id === item.id;
-				const element = document.getElementById(item.id);
-
-				if (seen || !element) continue;
-
-				map.current.set(index, { item, element });
-			}
+			handleSetItems(initialItems);
 		}
 	};
+
 	return {
 		register,
 		getIsFocused,

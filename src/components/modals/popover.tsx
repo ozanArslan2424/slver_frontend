@@ -1,7 +1,7 @@
 import { Drawer } from "vaul";
 import * as PopoverPrimitive from "@radix-ui/react-popover";
 import { cn } from "@/lib/utils";
-import type { DialogState } from "@/hooks/use-dialog";
+import type { DialogState } from "@/hooks/use-modal";
 import type { ReactNode, ComponentProps } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 

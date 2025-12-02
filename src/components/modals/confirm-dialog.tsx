@@ -1,5 +1,5 @@
 import { Dialog } from "./dialog";
-import type { DialogState } from "@/hooks/use-dialog";
+import type { DialogState } from "@/hooks/use-modal";
 import { cn, prefixId } from "@/lib/utils";
 import { useLanguage } from "@/modules/language/use-language";
 import type { ComponentProps } from "react";

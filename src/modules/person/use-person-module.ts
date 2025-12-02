@@ -5,7 +5,7 @@ import { useLanguage } from "@/modules/language/use-language";
 import { toast } from "sonner";
 import { useActionDialog } from "@/hooks/use-action-dialog";
 import { useCallback } from "react";
-import { useModal } from "@/hooks/use-dialog";
+import { useModal } from "@/hooks/use-modal";
 
 export type UsePersonModuleReturn = ReturnType<typeof usePersonModule>;
 

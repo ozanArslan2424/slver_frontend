@@ -1,4 +1,4 @@
-import { useModal } from "@/hooks/use-dialog";
+import { useModal } from "@/hooks/use-modal";
 import { prefixId } from "@/lib/utils";
 import { type ReactNode } from "react";
 

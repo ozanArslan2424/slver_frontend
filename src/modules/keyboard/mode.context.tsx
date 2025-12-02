@@ -12,22 +12,17 @@ type State = {
 	mode: SlimMode;
 	prevMode: SlimMode;
 	keyBuffer: string[];
-	focusIndex: number;
 };
 
 type Action =
 	| { type: "setMode"; payload: SlimMode }
 	| { type: "appendKey"; payload: string }
-	| { type: "resetKeyBuffer" }
-	| { type: "increaseIndex"; payload: { total: number } }
-	| { type: "decreaseIndex"; payload: { total: number } }
-	| { type: "setIndex"; payload: number };
+	| { type: "resetKeyBuffer" };
 
 const defaultState: State = {
 	mode: "normal",
 	prevMode: "normal",
 	keyBuffer: [],
-	focusIndex: 0,
 };
 
 const reducer = (prev: State, action: Action): State => {
@@ -38,18 +33,6 @@ const reducer = (prev: State, action: Action): State => {
 			return { ...prev, keyBuffer: [...prev.keyBuffer, action.payload] };
 		case "resetKeyBuffer":
 			return { ...prev, keyBuffer: [] };
-		case "increaseIndex":
-			return {
-				...prev,
-				focusIndex: (prev.focusIndex + 1) % action.payload.total,
-			};
-		case "decreaseIndex":
-			return {
-				...prev,
-				focusIndex: (prev.focusIndex - 1 + action.payload.total) % action.payload.total,
-			};
-		case "setIndex":
-			return { ...prev, focusIndex: action.payload };
 		default:
 			return prev;
 	}

@@ -1,5 +1,5 @@
 import { useAppContext } from "@/app";
-import { useModal } from "@/hooks/use-dialog";
+import { useModal } from "@/hooks/use-modal";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useCallback, useMemo, useRef } from "react";
 import { toast } from "sonner";

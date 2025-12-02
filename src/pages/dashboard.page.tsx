@@ -33,79 +33,82 @@ export function DashboardPage() {
 	const keyboardMod = useKeyboardModule();
 
 	useEffect(() => {
-		const items: SlimItem[] = [];
-		if (authMod.noGroup) {
+		if (personMod.listQuery.data && thingMod.listQuery.data) {
+			const items: SlimItem[] = [];
+
+			if (authMod.noGroup) {
+				items.push({
+					id: prefixId("create", "group"),
+					actions: [{ keys: ["Enter"], fn: groupMod.createAction }],
+				});
+			} else {
+				items.push({
+					id: prefixId("invite", "group"),
+					actions: [{ keys: ["Enter"], fn: groupMod.inviteAction }],
+				});
+
+				personMod.listQuery.data.forEach((p) =>
+					items.push({
+						id: prefixId(p.id, "person"),
+						actions: [
+							{ keys: ["Enter"], fn: () => personMod.handleAction(p) },
+							{ keys: ["x"], fn: () => personMod.handleRemoveClick(p) },
+						],
+					}),
+				);
+			}
+
 			items.push({
-				id: prefixId("create", "group"),
-				actions: [{ keys: ["Enter"], fn: groupMod.createAction }],
-			});
-		} else {
-			items.push({
-				id: prefixId("invite", "group"),
-				actions: [{ keys: ["Enter"], fn: groupMod.inviteAction }],
+				id: prefixId("form", "thing"),
+				actions: [{ keys: ["Enter"], fn: thingMod.formAction }],
 			});
 
-			personMod.listQuery.data?.forEach((p) =>
-				items.push({
-					id: prefixId(p.id, "person"),
-					actions: [
-						{ keys: ["Enter"], fn: () => personMod.handleAction(p) },
-						{ keys: ["x"], fn: () => personMod.handleRemoveClick(p) },
-					],
-				}),
-			);
+			thingMod.listQuery.data
+				.filter((t) => !t.isDone)
+				.sort((a, b) => thingMod.handleSortByDate(a, b, "notDone"))
+				.forEach((t) => {
+					items.push({
+						id: prefixId(t.id, "thing"),
+						actions: [
+							{
+								keys: ["Enter"],
+								fn: () => thingMod.handleDetailClick(t),
+								items: thingMod.detailItems,
+							},
+							{ keys: ["Space"], fn: () => thingMod.handleActionClick(t) },
+							{ keys: ["c"], fn: () => thingMod.handleDoneClick(t) },
+							{ keys: ["u"], fn: () => thingMod.handleUpdateClick(t) },
+							{ keys: ["a"], fn: () => thingMod.handleAssignClick(t) },
+							{ keys: ["x"], fn: () => thingMod.handleRemoveClick(t), items: thingMod.removeItems },
+						],
+					});
+				});
+
+			thingMod.listQuery.data
+				.filter((t) => t.isDone)
+				.sort((a, b) => thingMod.handleSortByDate(a, b, "done"))
+				.forEach((t) => {
+					items.push({
+						id: prefixId(t.id, "thing"),
+						actions: [
+							{
+								keys: ["Enter"],
+								fn: () => thingMod.handleDetailClick(t),
+								items: thingMod.detailItems,
+							},
+							{ keys: ["Space"], fn: () => thingMod.handleActionClick(t) },
+							{ keys: ["c"], fn: () => thingMod.handleDoneClick(t) },
+							{
+								keys: ["x"],
+								fn: () => thingMod.handleRemoveClick(t),
+								items: thingMod.removeItems,
+							},
+						],
+					});
+				});
+
+			keyboardMod.setInitialItems(items);
 		}
-
-		items.push({
-			id: prefixId("form", "thing"),
-			actions: [{ keys: ["Enter"], fn: thingMod.formAction }],
-		});
-
-		thingMod.listQuery.data
-			?.filter((t) => !t.isDone)
-			.sort((a, b) => thingMod.handleSortByDate(a, b, "notDone"))
-			.forEach((t) => {
-				items.push({
-					id: prefixId(t.id, "thing"),
-					actions: [
-						{
-							keys: ["Enter"],
-							fn: () => thingMod.handleDetailClick(t),
-							items: thingMod.detailItems,
-						},
-						{ keys: ["Space"], fn: () => thingMod.handleActionClick(t) },
-						{ keys: ["c"], fn: () => thingMod.handleDoneClick(t) },
-						{ keys: ["u"], fn: () => thingMod.handleUpdateClick(t) },
-						{ keys: ["a"], fn: () => thingMod.handleAssignClick(t) },
-						{ keys: ["x"], fn: () => thingMod.handleRemoveClick(t), items: thingMod.removeItems },
-					],
-				});
-			});
-
-		thingMod.listQuery.data
-			?.filter((t) => t.isDone)
-			.sort((a, b) => thingMod.handleSortByDate(a, b, "done"))
-			.forEach((t) => {
-				items.push({
-					id: prefixId(t.id, "thing"),
-					actions: [
-						{
-							keys: ["Enter"],
-							fn: () => thingMod.handleDetailClick(t),
-							items: thingMod.detailItems,
-						},
-						{ keys: ["Space"], fn: () => thingMod.handleActionClick(t) },
-						{ keys: ["c"], fn: () => thingMod.handleDoneClick(t) },
-						{
-							keys: ["x"],
-							fn: () => thingMod.handleRemoveClick(t),
-							items: thingMod.removeItems,
-						},
-					],
-				});
-			});
-
-		keyboardMod.setInitialItems(items);
 	}, [keyboardMod, personMod, groupMod, thingMod, authMod.noGroup]);
 
 	const dnd = useDnd({

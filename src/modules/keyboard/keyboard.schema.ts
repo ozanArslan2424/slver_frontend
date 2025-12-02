@@ -13,7 +13,8 @@ export type SlimItem = {
 
 export type SlimElementProps = {
 	id: string;
-	tabIndex: number;
+	tabIndex: -1;
+	"data-visual-item": true;
 };
 
 export type SlimElement = HTMLElement;
