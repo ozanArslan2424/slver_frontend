@@ -1,15 +1,15 @@
 import type { UseDndReturn } from "@/hooks/use-dnd";
 import { cn } from "@/lib/utils";
-import type { UseThingModuleReturn } from "@/modules/thing/use-thing-module";
+import { useLanguage } from "@/modules/language/use-language";
 
-type ThingDoneCardProps = {
-	thingModule: UseThingModuleReturn;
+type ThingStatusCardProps = {
 	dnd: UseDndReturn;
 	variant: "done" | "notDone";
 	className?: string;
 };
 
-export function ThingDoneCard({ thingModule, dnd, variant, className }: ThingDoneCardProps) {
+export function ThingStatusCard({ dnd, variant, className }: ThingStatusCardProps) {
+	const { t } = useLanguage("thing");
 	return (
 		<div
 			{...dnd.registerTarget({ targetId: variant })}
@@ -23,7 +23,7 @@ export function ThingDoneCard({ thingModule, dnd, variant, className }: ThingDon
 			)}
 		>
 			<p className="pointer-events-none text-center text-sm font-semibold select-none">
-				{thingModule.t(`${variant}.description`)}
+				{t(`${variant}.description`)}
 			</p>
 		</div>
 	);

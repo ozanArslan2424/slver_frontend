@@ -1,10 +1,18 @@
-export type SlimMode = "normal" | "visual" | "action" | "insert";
+export type SlimMode = "normal" | "visual" | "insert";
 
-export type SlimAction = {
-	keys: string[];
-	fn: () => void;
-	items?: SlimItem[];
-};
+export type SlimAction =
+	| {
+			keys: string[];
+			fn: (element: HTMLElement) => void;
+			items?: undefined;
+			rangeId?: undefined;
+	  }
+	| {
+			keys: string[];
+			fn: (element: HTMLElement) => void;
+			items: SlimItem[];
+			rangeId: string;
+	  };
 
 export type SlimItem = {
 	id: string;

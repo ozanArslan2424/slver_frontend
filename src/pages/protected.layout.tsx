@@ -4,19 +4,19 @@ import { useEffect, useState } from "react";
 import { PendingCard } from "@/components/ui/pending-card";
 import { AppFooter } from "@/components/layout/app-footer";
 import { clientRoutes } from "@/client.routes";
-import { useAppContext } from "@/app";
+import { useAppContext } from "@/modules/context/app.context";
 
 export function ProtectedLayout() {
 	const navigate = useNavigate();
-	const ctx = useAppContext();
+	const { query, auth, store } = useAppContext();
 	const [isPending, setIsPending] = useState(true);
 
 	useEffect(() => {
 		async function init() {
 			try {
-				const res = await ctx.query.fetchQuery(ctx.auth.queryMe());
-				ctx.store.set("groupId", res.memberships.length !== 0 ? res.memberships[0].groupId : null);
-				ctx.auth.setActive(res);
+				const res = await query.fetchQuery(auth.queryMe());
+				store.set("groupId", res.memberships.length !== 0 ? res.memberships[0].groupId : null);
+				auth.setActive(res);
 			} catch {
 				await navigate(clientRoutes.login);
 			} finally {
@@ -25,7 +25,7 @@ export function ProtectedLayout() {
 		}
 
 		init();
-	}, [ctx.query, ctx.auth, ctx.store, navigate]);
+	}, [query, auth, store, navigate]);
 
 	if (isPending) {
 		return <PendingCard />;

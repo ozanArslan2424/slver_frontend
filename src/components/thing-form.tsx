@@ -13,11 +13,13 @@ type ThingFormProps = {
 
 export function ThingForm({ thingModule, keyboardModule }: ThingFormProps) {
 	const { t } = useLanguage("thing");
-	const id = prefixId("form", "thing");
 	const form = thingModule.createForm;
 	const mutation = thingModule.createMutation;
 	const isPending = mutation.isPending;
 	const textareaRef = thingModule.textareaRef;
+	const id = prefixId("form", "thing");
+	const contentId = prefixId("content", "thing_form");
+	const dueDateId = prefixId("dueDate", "thing_form");
 
 	function handleRetry() {
 		if (mutation.isError) {
@@ -28,8 +30,8 @@ export function ThingForm({ thingModule, keyboardModule }: ThingFormProps) {
 	return (
 		<div
 			className={cn(
-				"flex h-max flex-1 flex-col gap-3 rounded-md outline-2 outline-offset-2 outline-transparent transition-all",
-				keyboardModule.getIsFocused(id) && "outline-ring",
+				"flex h-max flex-1 flex-col gap-3 rounded-md transition-all",
+				"data-[focus=true]:ring-primary ring ring-transparent",
 			)}
 			{...keyboardModule.register(id)}
 		>
@@ -39,9 +41,13 @@ export function ThingForm({ thingModule, keyboardModule }: ThingFormProps) {
 						placeholder={t("form.fields.title.label")}
 						title={t("form.fields.title.title")}
 						required
-						className="bg-card border-card min-h-20"
+						className={cn(
+							"bg-card border-card min-h-20",
+							"data-[focus=true]:ring-primary ring ring-transparent",
+						)}
 						ref={textareaRef}
 						disabled={isPending}
+						{...keyboardModule.register(contentId)}
 					/>
 				</FormField>
 
@@ -63,11 +69,13 @@ export function ThingForm({ thingModule, keyboardModule }: ThingFormProps) {
 							endDate={new Date(2040, 0, 1)}
 							renderTrigger={(open) => (
 								<button
+									{...keyboardModule.register(dueDateId)}
 									disabled={isPending}
 									type="button"
 									className={cn(
 										"square size-10 border-transparent",
 										open ? "primary" : "soft text-foreground/70 hover:text-foreground",
+										"data-[focus=true]:ring-primary ring ring-transparent",
 									)}
 								>
 									<CalendarPlusIcon className="size-5" />

@@ -1,10 +1,10 @@
 import { Dialog } from "./dialog";
-import type { DialogState } from "@/hooks/use-modal";
+import type { ModalState } from "@/hooks/use-modal";
 import { cn, prefixId } from "@/lib/utils";
 import { useLanguage } from "@/modules/language/use-language";
 import type { ComponentProps } from "react";
 
-type ConfirmDialogProps = DialogState & {
+type ConfirmDialogProps = ModalState & {
 	title: string;
 	description: string;
 	confirmProps?: Omit<ComponentProps<"button">, "onClick">;

@@ -1,12 +1,11 @@
-import { useAppContext } from "@/app";
 import { useForm } from "@/hooks/use-form";
 import { getErrorMessage } from "@/lib/error.utils";
+import { useAppContext } from "@/modules/context/app.context";
 import {
 	GroupCreateSchema,
 	GroupInviteSchema,
 	GroupJoinSchema,
 } from "@/modules/group/group.schema";
-import { useLanguage } from "@/modules/language/use-language";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useRef } from "react";
 
@@ -14,7 +13,6 @@ export type UseGroupModuleReturn = ReturnType<typeof useGroupModule>;
 
 export function useGroupModule() {
 	const { group } = useAppContext();
-	const { t } = useLanguage("group");
 	const createInputRef = useRef<HTMLInputElement | null>(null);
 	const joinInputRef = useRef<HTMLInputElement | null>(null);
 	const inviteInputRef = useRef<HTMLInputElement | null>(null);
@@ -56,15 +54,15 @@ export function useGroupModule() {
 
 	const createForm = useForm({
 		schema: GroupCreateSchema,
-		onSubmit: (body) => {
-			groupCreateMutation.mutate(body);
+		onSubmit: ({ values }) => {
+			groupCreateMutation.mutate(values);
 		},
 	});
 
 	const joinForm = useForm({
 		schema: GroupJoinSchema,
-		onSubmit: (body) => {
-			groupJoinMutation.mutate(body);
+		onSubmit: ({ values }) => {
+			groupJoinMutation.mutate(values);
 		},
 	});
 
@@ -73,8 +71,8 @@ export function useGroupModule() {
 		defaultValues: {
 			role: false,
 		},
-		onSubmit: (body) => {
-			groupInviteMutation.mutate(body);
+		onSubmit: ({ values }) => {
+			groupInviteMutation.mutate(values);
 		},
 	});
 
@@ -82,7 +80,6 @@ export function useGroupModule() {
 	const inviteAction = () => inviteInputRef.current?.focus();
 
 	return {
-		t,
 		groupQuery,
 		groupCreateMutation,
 		groupJoinMutation,

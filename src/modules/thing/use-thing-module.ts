@@ -1,18 +1,17 @@
-import { useAppContext } from "@/app";
 import { useModal } from "@/hooks/use-modal";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { useCallback, useMemo, useRef } from "react";
-import { toast } from "sonner";
+import { useRef } from "react";
 import { ThingCreateSchema, type ThingData } from "@/modules/thing/thing.schema";
 import { useLanguage } from "@/modules/language/use-language";
-import { prefixId } from "@/lib/utils";
 import { useForm } from "@/hooks/use-form";
-import type { SlimItem } from "@/modules/keyboard/keyboard.schema";
 import { useActionDialog } from "@/hooks/use-action-dialog";
+import { useAppContext } from "@/modules/context/app.context";
+import { useModalContext } from "@/modules/context/modal.context";
 
 export type UseThingModuleReturn = ReturnType<typeof useThingModule>;
 
 export function useThingModule() {
+	const { setModal } = useModalContext();
 	const { thing } = useAppContext();
 	const { t } = useLanguage("thing");
 
@@ -21,211 +20,150 @@ export function useThingModule() {
 	const listQuery = useQuery(thing.queryList());
 
 	const assignMutation = useMutation(thing.assign(handleReset));
-	const doneMutation = useMutation(thing.done(handleReset));
+	const statusMutation = useMutation(thing.done(handleReset));
 	const removeMutation = useMutation(thing.remove(handleReset));
 	const createMutation = useMutation(thing.create(handleReset));
 	const updateMutation = useMutation(thing.update(handleReset));
 
-	const updateDialog = useModal();
-	const detailDialog = useModal();
-	const assignDialog = useActionDialog({
-		actions: [],
-		title: t("assign.label"),
-		description: t("assign.label"),
-	});
-	const removeDialog = useModal();
-	const actionDialog = useActionDialog({
+	const updateModal = useModal();
+	const detailModal = useModal();
+	const assignModal = useModal();
+	const removeModal = useModal();
+	const menuModal = useActionDialog({
 		actions: [
 			{
 				key: "detail",
 				label: t("detail.label"),
-				onSelect: () => handleDetailClick(),
+				onSelect: () => detailOpenAction(),
 			},
 			...(thing.active?.isDone
 				? [
 						{
 							key: "not-done",
 							label: t("notDone.label"),
-							onSelect: () => handleDoneClick(),
+							onSelect: () => statusAction(),
 						},
 					]
 				: [
 						{
 							key: "done",
 							label: t("done.label"),
-							onSelect: () => handleDoneClick(),
+							onSelect: () => statusAction(),
 						},
 						{
 							key: "update",
 							label: t("update.label"),
-							onSelect: () => handleUpdateClick(),
+							onSelect: () => updateAction(),
 						},
 						{
 							key: "assign",
 							label: t("assign.label"),
-							onSelect: () => handleAssignClick(),
+							onSelect: () => assignAction(),
 						},
 					]),
 			{
 				key: "remove",
 				label: t("remove.label"),
-				onSelect: () => handleRemoveClick(),
+				onSelect: () => removeAction(),
 			},
 		],
 	});
 
 	const createForm = useForm({
 		schema: ThingCreateSchema,
-		onSubmit: (body) => {
-			createMutation.mutate(body);
+		onSubmit: ({ values }) => {
+			createMutation.mutate(values);
 		},
 	});
 
-	const defaultValues = useMemo(() => {
-		const active = thing.active;
-		if (active) {
-			return {
-				content: active.content,
-				dueDate: active.dueDate,
-				assignedToId: active.assignedToId ?? undefined,
-			};
-		}
-		return { content: "", dueDate: undefined, assignedToId: undefined };
-	}, [thing.active]);
-
 	const updateForm = useForm({
 		schema: ThingCreateSchema,
-		defaultValues,
-		onSubmit: (body) => {
+		defaultValues: {
+			content: thing.active?.content,
+			dueDate: thing.active?.dueDate,
+			assignedToId: thing.active?.assignedToId ?? undefined,
+		},
+		onSubmit: ({ values, defaultValues }) => {
 			if (thing.active) {
 				const isUpdated =
-					body.content !== defaultValues.content ||
-					body.dueDate !== defaultValues.dueDate ||
-					body.assignedToId !== defaultValues.assignedToId;
+					values.content !== defaultValues?.content ||
+					values.dueDate !== defaultValues?.dueDate ||
+					values.assignedToId !== defaultValues?.assignedToId;
 
 				if (isUpdated) {
-					updateMutation.mutate({ thingId: thing.active.id, ...body });
+					updateMutation.mutate({ thingId: thing.active.id, ...values });
 				} else {
 					handleReset();
 				}
 			} else {
-				createMutation.mutate(body);
+				createMutation.mutate(values);
 			}
 		},
 		onReset: () => {
 			thing.setActive(null);
-			updateDialog.onOpenChange(false);
+			updateModal.onOpenChange(false);
 		},
 	});
 
-	const handleActionClick = useCallback(
-		(entity: ThingData) => {
-			thing.setActive(entity);
-			actionDialog.onOpenChange(true);
-		},
-		[actionDialog, thing],
-	);
+	function menuAction(entity?: ThingData) {
+		if (entity) thing.setActive(entity);
+		menuModal.onOpenChange(true);
+	}
 
-	const handleDetailClick = useCallback(
-		(entity?: ThingData) => {
-			if (entity) {
-				thing.setActive(entity);
-			}
-			detailDialog.onOpenChange(true);
-		},
-		[detailDialog, thing],
-	);
+	function detailOpenAction(entity?: ThingData) {
+		if (entity) thing.setActive(entity);
+		detailModal.onOpenChange(true);
+	}
 
-	const handleUpdateClick = useCallback(
-		(entity?: ThingData) => {
-			if (entity) {
-				thing.setActive(entity);
-			}
-			updateDialog.onOpenChange(true);
-		},
-		[updateDialog, thing],
-	);
+	function detailCloseAction() {
+		detailModal.onOpenChange(false);
+	}
 
-	const handleRemoveClick = useCallback(
-		(entity?: ThingData) => {
-			if (entity) {
-				thing.setActive(entity);
-			}
-			removeDialog.onOpenChange(true);
-		},
-		[removeDialog, thing],
-	);
+	function updateAction(entity?: ThingData) {
+		if (entity) thing.setActive(entity);
+		updateModal.onOpenChange(true);
+	}
 
-	const handleAssignClick = useCallback(
-		(entity?: ThingData) => {
-			if (entity) {
-				thing.setActive(entity);
-			}
-			assignDialog.onOpenChange(true);
-		},
-		[assignDialog, thing],
-	);
+	function removeAction(entity?: ThingData) {
+		if (entity) thing.setActive(entity);
+		removeModal.onOpenChange(true);
+	}
 
-	const handleDoneClick = useCallback(
-		(entity?: ThingData, value?: boolean) => {
-			const active = thing.active ?? entity;
-			if (!active) return;
-			const isDone = value !== undefined ? value : !active.isDone;
-			doneMutation.mutate({ thingId: active.id, isDone });
-		},
-		[thing.active, doneMutation],
-	);
+	function assignAction(entity?: ThingData) {
+		if (entity) thing.setActive(entity);
+		assignModal.onOpenChange(true);
+	}
 
-	const handleConfirmRemove = useCallback(() => {
-		if (!thing.active) {
-			toast.error(t("remove.confirm.error"));
-			return;
-		}
-		removeMutation.mutate({ thingId: thing.active.id });
-	}, [removeMutation, t, thing.active]);
+	function statusAction(entity?: ThingData, value?: boolean) {
+		const active = thing.active ?? entity;
+		if (!active) return;
+		const thingId = active.id;
+		const isDone = value !== undefined ? value : !active.isDone;
+		statusMutation.mutate({ thingId, isDone });
+	}
 
-	const removeItems: SlimItem[] = [
-		{
-			id: prefixId("confirm", "thing_remove"),
-			actions: [{ keys: ["Enter"], fn: () => handleConfirmRemove() }],
-		},
-		{
-			id: prefixId("cancel", "thing_remove"),
-			actions: [{ keys: ["Enter"], fn: () => removeDialog.onOpenChange(false) }],
-		},
-	];
+	function removeConfirmAction(entity?: ThingData) {
+		const active = thing.active ?? entity;
+		if (!active) return;
+		const thingId = active.id;
+		removeMutation.mutate({ thingId });
+	}
 
-	const detailItems: SlimItem[] = [
-		{
-			id: prefixId("update", "thing_detail"),
-			actions: [{ keys: ["Enter", "Space"], fn: () => handleUpdateClick() }],
-		},
-		{
-			id: prefixId("remove", "thing_detail"),
-			actions: [{ keys: ["Enter", "Space"], fn: () => handleRemoveClick(), items: removeItems }],
-		},
-		{
-			id: prefixId("close", "thing_detail"),
-			actions: [{ keys: ["Enter", "Space"], fn: () => detailDialog.onOpenChange(false) }],
-		},
-	];
+	function removeCancelAction() {
+		removeModal.onOpenChange(false);
+	}
 
 	function handleReset() {
 		thing.setActive(null);
 		createForm.reset();
 		updateForm.reset();
-		actionDialog.onOpenChange(false);
-		updateDialog.onOpenChange(false);
-		detailDialog.onOpenChange(false);
-		assignDialog.onOpenChange(false);
-		removeDialog.onOpenChange(false);
+		setModal(null);
 	}
 
-	function handleSortByDate(a: ThingData, b: ThingData, variant: "done" | "notDone") {
+	function handleSortByDate(a: ThingData, b: ThingData) {
 		const getTime = (input: string) => new Date(input).getTime();
-
-		if (variant === "done") {
-			return getTime(b.doneDate ?? b.createdAt) - getTime(a.doneDate ?? a.createdAt);
+		if (!!a.doneDate && !!b.doneDate) {
+			return getTime(b.doneDate) - getTime(a.doneDate);
 		} else {
 			return getTime(b.createdAt) - getTime(a.createdAt);
 		}
@@ -234,33 +172,32 @@ export function useThingModule() {
 	const formAction = () => textareaRef.current?.focus();
 
 	return {
-		t,
 		find: thing.find,
+		active: thing.active,
 		listQuery,
 		textareaRef,
 		createMutation,
 		updateMutation,
 		assignMutation,
-		doneMutation,
+		statusMutation,
 		removeMutation,
 		createForm,
 		updateForm,
-		active: thing.active,
-		actionDialog,
-		updateDialog,
-		detailDialog,
-		removeDialog,
-		assignDialog,
-		handleActionClick,
-		handleDetailClick,
-		handleUpdateClick,
-		handleAssignClick,
-		handleRemoveClick,
-		handleDoneClick,
+		menuModal,
+		updateModal,
+		detailModal,
+		removeModal,
+		assignModal,
 		handleSortByDate,
-		handleConfirmRemove,
+		menuAction,
+		detailOpenAction,
+		detailCloseAction,
+		updateAction,
+		assignAction,
+		removeAction,
+		statusAction,
+		removeConfirmAction,
+		removeCancelAction,
 		formAction,
-		detailItems,
-		removeItems,
 	};
 }

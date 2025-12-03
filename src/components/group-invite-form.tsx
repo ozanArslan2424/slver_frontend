@@ -4,6 +4,7 @@ import { FormRootError } from "@/components/form/form-root-error";
 import { cn, prefixId } from "@/lib/utils";
 import type { UseGroupModuleReturn } from "@/modules/group/use-group-module";
 import type { UseKeyboardModuleReturn } from "@/modules/keyboard/use-keyboard-module";
+import { useLanguage } from "@/modules/language/use-language";
 import { Loader2Icon, ShieldUserIcon } from "lucide-react";
 
 type GroupFormProps = {
@@ -12,14 +13,16 @@ type GroupFormProps = {
 };
 
 export function GroupInviteForm({ groupModule, keyboardModule }: GroupFormProps) {
+	const { t } = useLanguage("group");
 	const id = prefixId("invite", "group");
 	const form = groupModule.inviteForm;
+	const inputRef = groupModule.inviteInputRef;
 
 	return (
 		<div
 			className={cn(
-				"flex h-max flex-1 flex-col gap-3 rounded-md outline-2 outline-offset-2 outline-transparent transition-all",
-				keyboardModule.getIsFocused(id) && "outline-ring",
+				"flex h-max flex-1 flex-col gap-3 rounded-md transition-all",
+				"data-[focus=true]:ring-primary ring ring-transparent",
 			)}
 			{...keyboardModule.register(id)}
 		>
@@ -28,9 +31,9 @@ export function GroupInviteForm({ groupModule, keyboardModule }: GroupFormProps)
 					<FormField form={form} name="email" id="email">
 						<input
 							required
-							ref={groupModule.inviteInputRef}
+							ref={inputRef}
 							className="bg-card border-card"
-							placeholder={groupModule.t("form.fields.email.label")}
+							placeholder={t("form.fields.email.label")}
 						/>
 					</FormField>
 					<FormField
@@ -38,7 +41,7 @@ export function GroupInviteForm({ groupModule, keyboardModule }: GroupFormProps)
 						form={form}
 						name="role"
 						id="role"
-						tooltip={groupModule.t("form.fields.role.label")}
+						tooltip={t("form.fields.role.label")}
 					>
 						<Checkbox
 							className="size-10 border-transparent"
@@ -50,7 +53,7 @@ export function GroupInviteForm({ groupModule, keyboardModule }: GroupFormProps)
 				<FormRootError form={form} />
 
 				<button type="submit" className="soft h-10 w-full border-transparent">
-					{form.isPending ? <Loader2Icon className="animate-spin" /> : groupModule.t("form.invite")}
+					{form.isPending ? <Loader2Icon className="animate-spin" /> : t("form.invite")}
 				</button>
 			</form>
 		</div>

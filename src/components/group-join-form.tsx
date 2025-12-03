@@ -3,6 +3,7 @@ import { FormRootError } from "@/components/form/form-root-error";
 import { cn, prefixId } from "@/lib/utils";
 import type { UseGroupModuleReturn } from "@/modules/group/use-group-module";
 import type { UseKeyboardModuleReturn } from "@/modules/keyboard/use-keyboard-module";
+import { useLanguage } from "@/modules/language/use-language";
 import { Loader2Icon } from "lucide-react";
 
 type GroupFormProps = {
@@ -11,14 +12,16 @@ type GroupFormProps = {
 };
 
 export function GroupJoinForm({ groupModule, keyboardModule }: GroupFormProps) {
+	const { t } = useLanguage("group");
 	const id = prefixId("join", "group");
 	const form = groupModule.joinForm;
+	const inputRef = groupModule.joinInputRef;
 
 	return (
 		<div
 			className={cn(
-				"flex h-max flex-1 flex-col gap-3 rounded-md outline-2 outline-offset-2 outline-transparent transition-all",
-				keyboardModule.getIsFocused(id) && "outline-ring",
+				"flex h-max flex-1 flex-col gap-3 rounded-md transition-all",
+				"data-[focus=true]:ring-primary ring ring-transparent",
 			)}
 			{...keyboardModule.register(id)}
 		>
@@ -26,16 +29,16 @@ export function GroupJoinForm({ groupModule, keyboardModule }: GroupFormProps) {
 				<FormField form={form} name="join" id="join">
 					<input
 						required
-						ref={groupModule.joinInputRef}
+						ref={inputRef}
 						className="bg-card border-card"
-						placeholder={groupModule.t("form.fields.join.label")}
+						placeholder={t("form.fields.join.label")}
 					/>
 				</FormField>
 
 				<FormRootError form={form} />
 
 				<button type="submit" className="soft h-10 w-full border-transparent">
-					{form.isPending ? <Loader2Icon className="animate-spin" /> : groupModule.t("form.join")}
+					{form.isPending ? <Loader2Icon className="animate-spin" /> : t("form.join")}
 				</button>
 			</form>
 		</div>

@@ -1,196 +1,208 @@
 import { useIsMobile } from "@/hooks/use-mobile";
-import { isValidIndex } from "@/lib/utils";
-import type { SlimItem, SlimElementProps, SlimMode } from "@/modules/keyboard/keyboard.schema";
-import { useModeContext } from "@/modules/keyboard/mode.context";
-import { useRef, useEffect, useCallback, useState } from "react";
+import { getNextIndex, isObjectWith, isValidIndex, toStringBoolean } from "@/lib/utils";
+import type { SlimElementProps, SlimItem } from "@/modules/keyboard/keyboard.schema";
+import { useModeContext } from "@/modules/context/mode.context";
+import { useCallback, useEffect, useRef, useState } from "react";
+
+const focusedElementSelector = "[data-visual-item=true][data-focus=true]";
+const visualElementSelector = "*[data-visual-item=true]";
+const inputElementSelector = "input, textarea";
 
 export type UseKeyboardModuleReturn = ReturnType<typeof useKeyboardModule>;
 
-// Simple, fast hash function for arrays
-function computeItemsHash(items: SlimItem[]): string {
-	// Fastest approach for typical array sizes
-	// Creates a simple string signature of all item IDs
-	let hash = "";
-	for (let i = 0; i < items.length; i++) {
-		hash += items[i].id;
-		if (i < items.length - 1) hash += "|"; // separator to distinguish "a|b" from "ab"
-	}
-	return hash;
-}
-
 export function useKeyboardModule() {
 	const isMobile = useIsMobile();
-	const { mode, prevMode, dispatch } = useModeContext();
-	const [currentId, setCurrentId] = useState<string | null>(null);
+	const { mode, setMode, setKeys } = useModeContext();
+	const [range, setRange] = useState<HTMLElement>(document.documentElement);
+	const [index, setIndex] = useState(0);
 	const hash = useRef<string>("");
 	const map = useRef(new Map<string, SlimItem>());
 
-	const handleSetItems = useCallback((items: SlimItem[]) => {
-		const currentHash = computeItemsHash(items);
-		if (currentHash === hash.current) {
-			return;
-		}
-		hash.current = currentHash;
+	const setItems = useCallback((items: SlimItem[]) => {
+		let currentHash = "";
 
-		requestAnimationFrame(() => {
+		for (let i = 0; i < items.length; i++) {
+			currentHash += items[i].id;
+			if (i < items.length - 1) currentHash += "|";
+		}
+
+		if (currentHash !== hash.current) {
+			hash.current = currentHash;
 			map.current.clear();
-			console.count("cleared");
-			for (const item of items) {
-				const element = document.getElementById(item.id);
-				if (!element) continue;
-				map.current.set(item.id, item);
-			}
-		});
+
+			requestAnimationFrame(() => {
+				for (const item of items) {
+					map.current.set(item.id, item);
+				}
+			});
+		}
 	}, []);
 
 	useEffect(() => {
-		const inputs = document.querySelectorAll("input, textarea");
-		const decreaseKeys = ["ArrowLeft", "ArrowUp", "Backspace"];
-		const increaseKeys = ["ArrowRight", "ArrowDown", "Tab"];
-		const navigateKeys = [...decreaseKeys, ...increaseKeys];
-		const escapeKeys = ["Escape"];
+		console.log(index);
 
-		const handleEscapeKey = (e: KeyboardEvent) => {
-			if (!escapeKeys.includes(e.code)) return;
+		const getInputElements = () => {
+			return Array.from(document.querySelectorAll(inputElementSelector)) as HTMLElement[];
+		};
 
-			if (mode === "action") {
-				dispatch({ type: "setMode", payload: prevMode === "action" ? "normal" : prevMode });
-			} else if (mode !== "normal") {
-				dispatch({ type: "setMode", payload: "normal" });
+		const getVisualElements = () => {
+			const all = Array.from(range.querySelectorAll(visualElementSelector)) as HTMLElement[];
+			const parentIds = Array.from(map.current.keys());
+			return all.filter((el) => parentIds.includes(el.id));
+		};
+
+		const getFocusedElement = () => {
+			return range.querySelector(focusedElementSelector) as HTMLElement | null;
+		};
+
+		const updateFocus = (nextIndex?: number) => {
+			const elements = getVisualElements();
+
+			for (const element of elements) {
+				element.setAttribute("data-focus", toStringBoolean(false));
 			}
 
-			dispatch({ type: "resetKeyBuffer" });
+			if (nextIndex === undefined) return;
+
+			const focusedElement = elements[nextIndex];
+			focusedElement.setAttribute("data-focus", toStringBoolean(true));
+			focusedElement.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" });
 		};
 
-		const handleIndex = (updater: number | ((prevIdx: number) => number)) => {
-			const ids = Array.from(map.current.keys());
-			const max = ids.length - 1;
-			const prevIdx = currentId ? ids.findIndex((id) => id === currentId) : 0;
-			const input = typeof updater === "function" ? updater(prevIdx) : updater;
-			const nextIdx = input > max ? 0 : input < 0 ? max : input;
-			const id = ids[nextIdx];
-			setCurrentId(id);
-		};
+		const navigate = (to: "next" | "prev" | number) => {
+			setIndex((prevIndex) => {
+				const isNormal = mode === "normal";
+				const elements = getVisualElements();
+				let nextIndex: number = prevIndex;
 
-		const handleKeySequence = (e: KeyboardEvent) => {
-			dispatch({ type: "appendKey", payload: e.code });
-
-			if (isValidIndex(parseInt(e.key), map.current)) {
-				e.preventDefault();
-				handleIndex(parseInt(e.key));
-				dispatch({ type: "setMode", payload: "visual" });
-			} else if (navigateKeys.includes(e.code)) {
-				e.preventDefault();
-				handleIndex(0);
-				dispatch({ type: "setMode", payload: "visual" });
-			}
-		};
-
-		const handleNavigate = (e: KeyboardEvent) => {
-			if (isValidIndex(parseInt(e.key), map.current)) {
-				// number button click
-				e.preventDefault();
-				handleIndex(parseInt(e.key));
-			} else if (increaseKeys.includes(e.code)) {
-				// next button click
-				e.preventDefault();
-				handleIndex((p) => p + 1);
-			} else if (decreaseKeys.includes(e.code)) {
-				// prev button click
-				e.preventDefault();
-				handleIndex((p) => p - 1);
-			} else {
-				// else check if action button was clicked
-				const entry = currentId ? map.current.get(currentId) : null;
-
-				if (!entry) return;
-
-				const keyPress = e.key === " " ? "Space" : e.key;
-				const action = entry.actions.find((action) => action.keys.includes(keyPress));
-
-				if (!action) return;
-
-				e.preventDefault();
-
-				action.fn();
-				if (action.items) {
-					dispatch({ type: "setMode", payload: "action" });
-					handleSetItems(action.items);
+				if (isNormal) {
+					setMode("visual");
 				}
+
+				if (to === "next") {
+					nextIndex = isNormal ? prevIndex : getNextIndex(prevIndex + 1, elements);
+				} else if (to === "prev") {
+					nextIndex = isNormal ? prevIndex : getNextIndex(prevIndex - 1, elements);
+				} else {
+					nextIndex = to;
+				}
+
+				updateFocus(nextIndex);
+				return nextIndex;
+			});
+		};
+
+		const reset = () => {
+			setRange(document.documentElement);
+			updateFocus();
+			setMode("normal");
+			setKeys([]);
+		};
+
+		const documentKeydown = (e: KeyboardEvent) => {
+			if (isMobile) return;
+			if (mode === "insert") return;
+
+			const prevKeys = ["ArrowLeft", "ArrowUp", "Backspace"];
+			const nextKeys = ["ArrowRight", "ArrowDown", "Tab"];
+			const escapeKeys = ["Escape"];
+
+			if (escapeKeys.includes(e.code)) {
+				e.preventDefault();
+				reset();
+				return;
 			}
-		};
 
-		const handleDialogOpen = () => {
-			if (mode !== "action") {
-				dispatch({ type: "setMode", payload: "action" });
+			setKeys((p) => [...p, e.code]);
+
+			if (isValidIndex(parseInt(e.key), map.current)) {
+				e.preventDefault();
+				navigate(parseInt(e.key));
+				return;
 			}
-		};
 
-		const handleDialogClose = () => {
-			dispatch({ type: "setMode", payload: "normal" });
-		};
-
-		const handleKeyDown = (e: KeyboardEvent) => {
-			switch (mode) {
-				case "normal":
-					handleKeySequence(e);
-					handleEscapeKey(e);
-					break;
-				case "visual":
-					handleKeySequence(e);
-					handleEscapeKey(e);
-					handleNavigate(e);
-					break;
-				case "action":
-					handleEscapeKey(e);
-					handleNavigate(e);
-					break;
-				case "insert":
-					handleEscapeKey(e);
-					break;
-				default:
-					break;
+			if (nextKeys.includes(e.code)) {
+				e.preventDefault();
+				navigate("next");
+				return;
 			}
+
+			if (prevKeys.includes(e.code)) {
+				e.preventDefault();
+				navigate("prev");
+				return;
+			}
+
+			const focusedElement = getFocusedElement();
+			if (!focusedElement) return;
+
+			const item = map.current.get(focusedElement.id);
+			const keyPress = e.key === " " ? "Space" : e.key;
+			const action = item?.actions.find((action) => action.keys.includes(keyPress));
+			if (!action) return;
+
+			e.preventDefault();
+			console.log(action.fn.toString());
+			action.fn(focusedElement);
+			requestAnimationFrame(() => {
+				if (action.items && action.items.length !== 0) {
+					const range = document.getElementById(action.rangeId);
+					if (!range)
+						throw new Error(
+							`Can't have child actions without a range ID. Check your schema for: ${item?.id}`,
+						);
+					setRange(range);
+					setItems(action.items);
+					updateFocus();
+				}
+			});
 		};
 
-		const handleInputFocus = () => {
-			dispatch({ type: "setMode", payload: "insert" });
-		};
+		const inputKeydown = (e: Event) => {
+			const isKeyDown = isObjectWith<{ code: string }>(e, "code");
+			if (!isKeyDown) return;
+			const nextKeys = ["Tab"];
+			const escapeKeys = ["Escape"];
 
-		const handleInputBlur = () => {
-			dispatch({ type: "setMode", payload: "normal" });
-		};
-
-		const handleInputKeyDown = (e: Event) => {
-			if ("key" in e && typeof e.key === "string" && escapeKeys.includes(e.key)) {
+			if (escapeKeys.includes(e.code)) {
 				e.preventDefault();
 				const target = e.target as HTMLInputElement | HTMLTextAreaElement;
 				target.blur();
+				reset();
+				return;
+			}
+
+			if (nextKeys.includes(e.code)) {
+				e.preventDefault();
+				navigate("next");
+				return;
 			}
 		};
 
-		if (!isMobile) {
-			document.addEventListener("keydown", handleKeyDown);
-			document.addEventListener("dialog:close", handleDialogClose);
-			document.addEventListener("dialog:open", handleDialogOpen);
-			inputs.forEach((input) => {
-				input.addEventListener("keydown", handleInputKeyDown);
-				input.addEventListener("focus", handleInputFocus);
-				input.addEventListener("blur", handleInputBlur);
-			});
-		}
+		const inputFocus = () => {
+			setMode("insert");
+		};
 
+		const inputBlur = () => {
+			setMode("normal");
+		};
+
+		const inputs = getInputElements();
+		range.addEventListener("keydown", documentKeydown);
+		inputs.forEach((input) => {
+			input.addEventListener("keydown", inputKeydown);
+			input.addEventListener("focus", inputFocus);
+			input.addEventListener("blur", inputBlur);
+		});
 		return () => {
-			document.removeEventListener("keydown", handleKeyDown);
-			document.removeEventListener("dialog:close", handleDialogClose);
-			document.removeEventListener("dialog:open", handleDialogOpen);
+			range.removeEventListener("keydown", documentKeydown);
 			inputs.forEach((input) => {
-				input.removeEventListener("keydown", handleInputKeyDown);
-				input.removeEventListener("focus", handleInputFocus);
-				input.removeEventListener("blur", handleInputBlur);
+				input.removeEventListener("keydown", inputKeydown);
+				input.removeEventListener("focus", inputFocus);
+				input.removeEventListener("blur", inputBlur);
 			});
 		};
-	}, [isMobile, mode, prevMode, dispatch, handleSetItems, currentId]);
+	}, [mode, index, range, setItems, isMobile, setMode, setKeys]);
 
 	const register = (id: string): SlimElementProps => ({
 		id,
@@ -198,34 +210,14 @@ export function useKeyboardModule() {
 		"data-visual-item": true,
 	});
 
-	const getIsFocused = (id: string): boolean => {
-		const focusableModes: SlimMode[] = ["visual", "action"];
-		if (!currentId) return false;
-
-		if (focusableModes.includes(mode)) {
-			const isFocused = currentId === id;
-
-			if (isFocused) {
-				document
-					.getElementById(id)
-					?.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" });
-			}
-
-			return isFocused;
-		}
-
-		return false;
-	};
-
 	const setInitialItems = (initialItems: SlimItem[]) => {
-		if (mode !== "action") {
-			handleSetItems(initialItems);
+		if (range === document.documentElement) {
+			setItems(initialItems);
 		}
 	};
 
 	return {
 		register,
-		getIsFocused,
 		setInitialItems,
 	};
 }

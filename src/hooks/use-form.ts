@@ -7,7 +7,11 @@ export type TFormErrors<TFields> = z.core.$ZodFlattenedError<TFields, string>["f
 
 type UseFormArgs<T> = {
 	schema: z.ZodType<T>;
-	onSubmit: (values: T, formData: FormData) => void | Promise<void>;
+	onSubmit: (submitData: {
+		values: T;
+		formData: FormData;
+		defaultValues?: Partial<T>;
+	}) => void | Promise<void>;
 	onReset?: () => void;
 	defaultValues?: Partial<T>;
 };
@@ -62,7 +66,11 @@ export function useForm<T>(args: UseFormArgs<T>): UseFormReturn<T> {
 					return;
 				}
 				setErrors(emptyErrors);
-				args.onSubmit(parseResult.data, formData);
+				args.onSubmit({
+					values: parseResult.data,
+					defaultValues: args.defaultValues,
+					formData,
+				});
 			});
 		},
 		[args],

@@ -1,10 +1,10 @@
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
-import { useModeContext } from "@/modules/keyboard/mode.context";
+import { useModeContext } from "@/modules/context/mode.context";
 
 export function AppFooter() {
 	const isMobile = useIsMobile();
-	const { mode, keyBuffer: keysBuffer } = useModeContext();
+	const { mode, keys } = useModeContext();
 
 	const modeColors = {
 		normal: "bg-primary text-primary-foreground",
@@ -61,7 +61,7 @@ export function AppFooter() {
 					{isMobile ? "mobile" : mode}
 				</div>
 				<div className="text-secondary-foreground inline-flex h-8 max-w-[200px] items-center justify-end overflow-hidden border-y px-4 text-right font-mono text-sm whitespace-nowrap">
-					{keysBuffer
+					{keys
 						.slice(-5)
 						.map((k) => getKeyLabel(k))
 						.join("")}

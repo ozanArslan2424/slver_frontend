@@ -1,5 +1,5 @@
-import { useAppContext } from "@/app";
 import { clientRoutes } from "@/client.routes";
+import { useAppContext } from "@/modules/context/app.context";
 import { useLanguage } from "@/modules/language/use-language";
 import { useEffect } from "react";
 import { Outlet, useNavigate } from "react-router";
@@ -9,20 +9,20 @@ export function AuthLayout() {
 	const tCommon = makeTranslator("common");
 	const tAuth = makeTranslator("auth");
 	const navigate = useNavigate();
-	const ctx = useAppContext();
+	const { query, auth, store } = useAppContext();
 
 	useEffect(() => {
 		async function init() {
 			try {
-				const res = await ctx.query.fetchQuery(ctx.auth.queryMe());
-				ctx.store.set("groupId", res.memberships.length !== 0 ? res.memberships[0].groupId : null);
-				ctx.auth.setActive(res);
+				const res = await query.fetchQuery(auth.queryMe());
+				store.set("groupId", res.memberships.length !== 0 ? res.memberships[0].groupId : null);
+				auth.setActive(res);
 				await navigate(clientRoutes.dashboard);
 			} catch {}
 		}
 
 		init();
-	}, [ctx.query, ctx.auth, ctx.store, navigate]);
+	}, [query, auth, store, navigate]);
 
 	const appName = tCommon("app");
 	const tosLabel = tAuth("tos.label");

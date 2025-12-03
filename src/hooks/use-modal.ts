@@ -1,35 +1,23 @@
 import { prefixId } from "@/lib/utils";
-import { useId, useState } from "react";
+import { useModalContext } from "@/modules/context/modal.context";
+import { useCallback, useId, useMemo, useRef } from "react";
 
-export type DialogState = ReturnType<typeof useModal>;
+export type ModalState = ReturnType<typeof useModal>;
 
-export interface DialogEvent extends CustomEvent {
-	detail: { id: string };
-}
-
-// TODO: Keep a global context for open dialogs,
-// radix executes close for all dialogs regardless of current state
-declare global {
-	interface DocumentEventMap {
-		"dialog:open": DialogEvent;
-		"dialog:close": DialogEvent;
-	}
-}
-
-export function useModal(defaultOpen?: boolean) {
-	const [open, setOpen] = useState(defaultOpen ?? false);
-
+export function useModal() {
+	const { modal, setModal } = useModalContext();
 	const generatedId = useId();
-	const id = prefixId(generatedId, "dialog");
+	const id = prefixId(generatedId, "modal");
+	const ref = useRef<HTMLDivElement | null>(null);
 
-	const onOpenChange = (value: boolean) => {
-		setOpen(value);
-		const event = new CustomEvent(`dialog:${value ? "open" : "close"}`, {
-			detail: { id },
-			bubbles: true,
-		});
-		document.dispatchEvent(event);
-	};
+	const open = useMemo(() => modal === id, [id, modal]);
 
-	return { open, onOpenChange, defaultOpen, id };
+	const onOpenChange = useCallback(
+		(bool: boolean) => {
+			setModal(bool ? id : null);
+		},
+		[id, setModal],
+	);
+
+	return { id, ref, open, onOpenChange };
 }

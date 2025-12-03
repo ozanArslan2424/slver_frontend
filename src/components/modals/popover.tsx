@@ -1,11 +1,11 @@
 import { Drawer } from "vaul";
 import * as PopoverPrimitive from "@radix-ui/react-popover";
 import { cn } from "@/lib/utils";
-import type { DialogState } from "@/hooks/use-modal";
+import type { ModalState } from "@/hooks/use-modal";
 import type { ReactNode, ComponentProps } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
-type PopoverProps = DialogState & {
+type PopoverProps = Omit<ModalState, "ref"> & {
 	trigger?: (open: boolean) => ReactNode;
 	className?: string;
 	align?: ComponentProps<typeof PopoverPrimitive.Content>["align"];

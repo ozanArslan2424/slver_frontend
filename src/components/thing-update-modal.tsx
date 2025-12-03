@@ -6,22 +6,30 @@ import type { UsePersonModuleReturn } from "@/modules/person/use-person-module";
 import type { UseThingModuleReturn } from "@/modules/thing/use-thing-module";
 import { CalendarPlusIcon, ChevronDownIcon } from "lucide-react";
 import { PersonAvatar } from "@/components/ui/person-avatar";
-import { cn } from "@/lib/utils";
+import { cn, prefixId } from "@/lib/utils";
 import { useLanguage } from "@/modules/language/use-language";
+import type { UseKeyboardModuleReturn } from "@/modules/keyboard/use-keyboard-module";
 
-type ThingUpdateDialogProps = {
+type ThingUpdateModalProps = {
 	thingModule: UseThingModuleReturn;
 	personModule: UsePersonModuleReturn;
+	keyboardModule: UseKeyboardModuleReturn;
 };
 
-export function ThingUpdateDialog({ thingModule, personModule }: ThingUpdateDialogProps) {
+export function ThingUpdateModal({
+	thingModule,
+	personModule,
+	keyboardModule,
+}: ThingUpdateModalProps) {
 	const { t, timestamp } = useLanguage("thing");
 	const thing = thingModule.active;
-	const dialog = thingModule.updateDialog;
-	const textareaRef = thingModule.textareaRef;
+	const modal = thingModule.updateModal;
 	const form = thingModule.updateForm;
 	const mutation = thingModule.updateMutation;
 	const isPending = mutation.isPending;
+	const contentId = prefixId("content", "thing_update_modal");
+	const dueDateId = prefixId("dueDate", "thing_update_modal");
+	const assignedToIdId = prefixId("assignedToId", "thing_update_modal");
 
 	function handleRetry() {
 		if (mutation.isError) {
@@ -31,7 +39,7 @@ export function ThingUpdateDialog({ thingModule, personModule }: ThingUpdateDial
 
 	if (!thing) return null;
 	return (
-		<Dialog {...dialog} showTitle title={t("update.title")} description={t("update.description")}>
+		<Dialog {...modal} showTitle title={t("update.title")} description={t("update.description")}>
 			<form {...form.methods} className="flex flex-col gap-3">
 				<div className="flex flex-1 flex-col gap-3">
 					<FormField form={form} name="content" id="content">
@@ -40,8 +48,8 @@ export function ThingUpdateDialog({ thingModule, personModule }: ThingUpdateDial
 							title={t("form.fields.title.title")}
 							required
 							className="min-h-40"
-							ref={textareaRef}
 							disabled={isPending}
+							{...keyboardModule.register(contentId)}
 						/>
 					</FormField>
 
@@ -51,6 +59,7 @@ export function ThingUpdateDialog({ thingModule, personModule }: ThingUpdateDial
 							endDate={new Date(2040, 0, 1)}
 							renderTrigger={(open, val) => (
 								<button
+									{...keyboardModule.register(dueDateId)}
 									className="outlined neon lg w-full justify-between font-normal"
 									disabled={isPending}
 								>
@@ -78,6 +87,7 @@ export function ThingUpdateDialog({ thingModule, personModule }: ThingUpdateDial
 							}))}
 							renderTrigger={(open, val) => (
 								<button
+									{...keyboardModule.register(assignedToIdId)}
 									className="outlined neon lg w-full justify-between font-normal"
 									disabled={isPending}
 								>

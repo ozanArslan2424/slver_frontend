@@ -5,7 +5,7 @@ import { useLanguage } from "@/modules/language/use-language";
 import { cn } from "@/lib/utils";
 import { useState, type ReactNode } from "react";
 
-interface DatePickerProps {
+type DatePickerProps = {
 	id?: string;
 	name?: string;
 	value?: string;
@@ -16,7 +16,7 @@ interface DatePickerProps {
 	placeholder?: string;
 	className?: string;
 	renderTrigger?: (open: boolean, value: Date | undefined) => ReactNode;
-}
+};
 
 export function DatePicker({
 	id,
@@ -56,7 +56,6 @@ export function DatePicker({
 				id={`${id ?? name}_popover`}
 				open={open}
 				onOpenChange={onOpenChange}
-				defaultOpen={false}
 				trigger={(open) =>
 					renderTrigger ? (
 						renderTrigger(open, dateValue)

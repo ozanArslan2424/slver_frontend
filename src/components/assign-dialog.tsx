@@ -6,16 +6,20 @@ import { useLanguage } from "@/modules/language/use-language";
 import type { UsePersonModuleReturn } from "@/modules/person/use-person-module";
 import type { UseThingModuleReturn } from "@/modules/thing/use-thing-module";
 
-type AssignDialogProps = {
+type AssignModalProps = {
 	thingModule: UseThingModuleReturn;
 	personModule: UsePersonModuleReturn;
 	variant: "thing" | "person";
 };
 
-export function AssignDialog({ personModule, thingModule, variant }: AssignDialogProps) {
-	const { timestamp } = useLanguage();
+export function AssignModal({ personModule, thingModule, variant }: AssignModalProps) {
+	const { t, timestamp, makeTranslator } = useLanguage(variant);
+	const personList = personModule.listQuery.data ?? [];
+	const thingList = thingModule.listQuery.data ?? [];
 
-	const thingVariantActions: EntityAction[] = (personModule.listQuery.data ?? []).map((person) => ({
+	const thingT = makeTranslator("thing");
+
+	const thingVariantActions: EntityAction[] = personList.map((person) => ({
 		key: prefixId(person.id, "person"),
 		label: (
 			<div className="flex items-center gap-2">
@@ -32,7 +36,7 @@ export function AssignDialog({ personModule, thingModule, variant }: AssignDialo
 		},
 	}));
 
-	const personVariantActions: EntityAction[] = (thingModule.listQuery.data ?? []).map((thing) => ({
+	const personVariantActions: EntityAction[] = thingList.map((thing) => ({
 		key: prefixId(thing.id, "thing"),
 		label: (
 			<div className="flex w-full items-start justify-between gap-3">
@@ -41,17 +45,14 @@ export function AssignDialog({ personModule, thingModule, variant }: AssignDialo
 
 					<p className="text-foreground/70 group-hover:text-accent-foreground group-data-[selected=true]:text-accent-foreground text-xs">
 						{thing.assignedTo
-							? thingModule.t("detail.fields.assignedTo.somebody", {
+							? thingT("detail.fields.assignedTo.somebody", {
 									name: thing.assignedTo.name,
 								})
-							: thingModule.t("detail.fields.assignedTo.nobody")}{" "}
+							: thingT("detail.fields.assignedTo.nobody")}{" "}
 						{thing.dueDate &&
-							thingModule.t(
-								`detail.fields.dueDate.${thing.isDone ? "labelDone" : "labelNotDone"}`,
-								{
-									date: timestamp(thing.dueDate).fromNow,
-								},
-							)}
+							thingT(`detail.fields.dueDate.${thing.isDone ? "labelDone" : "labelNotDone"}`, {
+								date: timestamp(thing.dueDate).fromNow,
+							})}
 					</p>
 				</div>
 
@@ -72,7 +73,8 @@ export function AssignDialog({ personModule, thingModule, variant }: AssignDialo
 		},
 	}));
 	const actions = variant === "thing" ? thingVariantActions : personVariantActions;
-	const props = variant === "thing" ? thingModule.assignDialog : personModule.assignDialog;
+	const props = variant === "thing" ? thingModule.assignModal : personModule.assignModal;
+	const title = t("assign.label");
 
-	return <ActionDialog {...props} actions={actions} />;
+	return <ActionDialog {...props} title={title} description={title} actions={actions} />;
 }

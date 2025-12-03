@@ -5,7 +5,8 @@ import { ErrorCard } from "@/components/ui/error-card";
 import type { UseKeyboardModuleReturn } from "@/modules/keyboard/use-keyboard-module";
 import type { UsePersonModuleReturn } from "@/modules/person/use-person-module";
 import { Status } from "@/modules/person/person.schema";
-import { useAppContext } from "@/app";
+import { useAppContext } from "@/modules/context/app.context";
+import { useLanguage } from "@/modules/language/use-language";
 
 type PersonListProps = {
 	personModule: UsePersonModuleReturn;
@@ -14,8 +15,12 @@ type PersonListProps = {
 };
 
 export function PersonList({ personModule, keyboardModule, dnd }: PersonListProps) {
+	const { t } = useLanguage("person");
 	const { store } = useAppContext();
-	if (personModule.listQuery.isPending) {
+	const listQuery = personModule.listQuery;
+	const menuAction = personModule.menuAction;
+
+	if (listQuery.isPending) {
 		return (
 			<div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
 				{repeat().map((i) => (
@@ -30,15 +35,15 @@ export function PersonList({ personModule, keyboardModule, dnd }: PersonListProp
 		);
 	}
 
-	if (personModule.listQuery.error) {
-		return <ErrorCard error={personModule.listQuery.error} />;
+	if (listQuery.error) {
+		return <ErrorCard error={listQuery.error} />;
 	}
 
-	if (personModule.listQuery.data.length === 0) {
+	if (listQuery.data.length === 0) {
 		return (
 			<div className="card">
 				<article className="text-foreground/70 text-center text-sm font-bold">
-					{personModule.t("noLength")}
+					{t("noLength")}
 				</article>
 			</div>
 		);
@@ -46,7 +51,7 @@ export function PersonList({ personModule, keyboardModule, dnd }: PersonListProp
 
 	return (
 		<div className="grid grid-cols-2 gap-3 xl:grid-cols-3">
-			{personModule.listQuery.data.map((person, index) => {
+			{listQuery.data.map((person, index) => {
 				const id = prefixId(person.id, "person");
 				const delay = (index + 2) * 50;
 				const initials = person.name
@@ -54,26 +59,27 @@ export function PersonList({ personModule, keyboardModule, dnd }: PersonListProp
 					.map((p) => p[0].toLocaleUpperCase())
 					.slice(0, 2)
 					.join("");
-				const status = person.memberships.find((m) => m.groupId === store.get("groupId"))?.status;
+				const group = person.memberships.find((m) => m.groupId === store.get("groupId"));
+				const status = group?.status;
 				return (
 					<div
 						key={id}
 						{...keyboardModule.register(id)}
 						{...dnd.registerSource({ sourceId: id })}
-						onClick={() => personModule.handleAction(person)}
+						onClick={() => menuAction(person)}
 						style={{
 							animationDelay: `${delay}ms`,
 						}}
 						className={cn(
 							"relative",
-							"hover:border-primary animate_down aspect-square cursor-grab overflow-hidden rounded-md border border-transparent outline-2 outline-offset-2 outline-transparent transition-all active:cursor-grabbing",
-							keyboardModule.getIsFocused(id) && "outline-ring",
+							"hover:border-primary animate_down aspect-square cursor-grab overflow-hidden rounded-md border border-transparent transition-all active:cursor-grabbing",
+							"data-[focus=true]:ring-primary ring ring-transparent",
 							"h-full w-full",
 						)}
 					>
 						{status === Status.pending && (
 							<div className="absolute top-0 left-0 w-full truncate bg-amber-200 p-1 text-center text-xs font-semibold whitespace-nowrap text-black dark:bg-amber-600">
-								{personModule.t("memberPending")}
+								{t("memberPending")}
 							</div>
 						)}
 

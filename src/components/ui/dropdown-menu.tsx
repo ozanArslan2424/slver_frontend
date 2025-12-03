@@ -2,14 +2,6 @@ import * as React from "react";
 import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
 import { CheckIcon, ChevronLeftIcon, ChevronRightIcon, CircleIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { TAppIcon } from "@/lib/helper.type";
-
-export type DropdownMenuItemType = {
-	label: string;
-	icon?: TAppIcon;
-	onClick?: (value: string) => void;
-	children?: DropdownMenuItemType[];
-};
 
 export function DropdownMenu({
 	children,

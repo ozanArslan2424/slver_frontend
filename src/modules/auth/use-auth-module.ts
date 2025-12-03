@@ -1,4 +1,3 @@
-import { useAppContext } from "@/app";
 import { useForm } from "@/hooks/use-form";
 import { getErrorMessage } from "@/lib/error.utils";
 import { clientRoutes } from "@/client.routes";
@@ -7,22 +6,23 @@ import { useLanguage } from "@/modules/language/use-language";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router";
 import { Status } from "@/modules/person/person.schema";
+import { useAppContext } from "@/modules/context/app.context";
 
 export type UseAuthModuleReturn = ReturnType<typeof useAuthModule>;
 
 export function useAuthModule() {
 	const { t } = useLanguage("auth");
-	const ctx = useAppContext();
+	const { auth } = useAppContext();
 	const nav = useNavigate();
 
-	const meQuery = useQuery(ctx.auth.queryMe());
+	const meQuery = useQuery(auth.queryMe());
 	const noGroup =
 		meQuery.data?.memberships.filter((m) => m.status === Status.accepted).length === 0;
 	const pendingMemberships = meQuery.data?.memberships.filter((m) => m.status === Status.pending);
 
-	const logoutMutation = useMutation(ctx.auth.logout());
+	const logoutMutation = useMutation(auth.logout());
 	const loginMutation = useMutation(
-		ctx.auth.login(
+		auth.login(
 			() => {
 				nav(clientRoutes.dashboard);
 			},
@@ -33,7 +33,7 @@ export function useAuthModule() {
 		),
 	);
 	const registerMutation = useMutation(
-		ctx.auth.register(
+		auth.register(
 			() => {
 				nav(clientRoutes.dashboard);
 			},
@@ -45,12 +45,12 @@ export function useAuthModule() {
 
 	const loginForm = useForm({
 		schema: AuthLoginSchema,
-		onSubmit: (body) => loginMutation.mutate(body),
+		onSubmit: ({ values }) => loginMutation.mutate(values),
 	});
 
 	const registerForm = useForm({
 		schema: AuthRegisterSchema,
-		onSubmit: (body) => registerMutation.mutate(body),
+		onSubmit: ({ values }) => registerMutation.mutate(values),
 	});
 
 	return {

@@ -1,4 +1,4 @@
-import { OverflowBox } from "@/components/overflow-box";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { PersonAvatar } from "@/components/ui/person-avatar";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/modules/language/use-language";
@@ -15,9 +15,8 @@ export function ThingCard({ thing, className, ...rest }: ThingCardProps) {
 	return (
 		<div
 			className={cn(
-				"card",
-				"flex min-h-18 flex-col gap-3 p-3",
-				"border-card relative min-h-18 cursor-pointer outline-2 outline-offset-2 outline-transparent transition-all",
+				"card hover:border-primary border-card relative flex min-h-18 cursor-grab flex-col gap-3 p-3 transition-all active:cursor-grabbing",
+				"data-[focus=true]:ring-primary ring ring-transparent",
 				thing._placeholder === true ? "opacity-30" : "animate_down",
 				className,
 			)}
@@ -25,11 +24,11 @@ export function ThingCard({ thing, className, ...rest }: ThingCardProps) {
 		>
 			<div className="flex items-start justify-between gap-3">
 				<div className="flex flex-1 flex-col">
-					<OverflowBox maxHeight="sm:max-h-[100px] max-h-[40px]" gradient="from-card via-card/30">
+					<ScrollArea className="max-h-10 sm:max-h-[100px]" gradient="from-card via-card/30">
 						<p className="max-w-full pb-2 font-sans text-sm font-semibold wrap-break-word whitespace-pre-wrap">
 							{thing.content}
 						</p>
-					</OverflowBox>
+					</ScrollArea>
 
 					<p className="text-foreground/70 text-xs">
 						{thing.assignedTo

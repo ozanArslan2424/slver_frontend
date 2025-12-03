@@ -1,5 +1,5 @@
 import { Dialog } from "@/components/modals/dialog";
-import { OverflowBox } from "@/components/overflow-box";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { PersonAvatar } from "@/components/ui/person-avatar";
 import { cn, prefixId } from "@/lib/utils";
 import type { UseKeyboardModuleReturn } from "@/modules/keyboard/use-keyboard-module";
@@ -8,70 +8,69 @@ import type { UseThingModuleReturn } from "@/modules/thing/use-thing-module";
 import { CalendarCogIcon, CheckIcon } from "lucide-react";
 import type { ReactNode } from "react";
 
-type ThingDetailDialogProps = {
+type ThingDetailModalProps = {
 	thingModule: UseThingModuleReturn;
 	keyboardModule: UseKeyboardModuleReturn;
 };
 
 function ThingInfoLine({
 	icon,
+	squircle,
 	label,
 	className,
 }: {
-	icon: ReactNode;
+	icon?: ReactNode;
+	squircle?: ReactNode;
 	label: string;
 	className?: string;
 }) {
 	return (
 		<div className={cn("flex items-center gap-2 sm:gap-3", className)}>
-			{icon}
+			{squircle ? (
+				<div className="squircle bg-card text-card-foreground ring-border h-8.5 w-8.5 ring">
+					{squircle}
+				</div>
+			) : (
+				icon
+			)}
 			<p className="text-sm font-bold wrap-break-word sm:text-base">{label}</p>
 		</div>
 	);
 }
 
-export function ThingDetailDialog({ thingModule, keyboardModule }: ThingDetailDialogProps) {
+export function ThingDetailModal({ thingModule, keyboardModule }: ThingDetailModalProps) {
 	const { t, timestamp } = useLanguage("thing");
 
 	const thing = thingModule.active;
-	const handleUpdateClick = thingModule.handleUpdateClick;
-	const handleRemoveClick = thingModule.handleRemoveClick;
-	const dialog = thingModule.detailDialog;
-	const closeButtonId = prefixId("close", "thing_detail");
+	const updateAction = thingModule.updateAction;
+	const removeAction = thingModule.removeAction;
+	const modal = thingModule.detailModal;
 	const updateButtonId = prefixId("update", "thing_detail");
 	const removeButtonId = prefixId("remove", "thing_detail");
 
 	const iconSize = "size-5";
-	const squircleSize = "size-8.5";
 
 	if (!thing) return null;
 
 	return (
 		<Dialog
-			{...dialog}
+			{...modal}
 			className="bg-card text-card-foreground"
 			title={t("detail.fields.title", { id: thing.id })}
 			description={t("detail.fields.description")}
-			closeButtonProps={{
-				className: cn(
-					"outline-2 outline-offset-2 outline-transparent",
-					keyboardModule.getIsFocused(closeButtonId) && "outline-ring",
-				),
-				...keyboardModule.register(closeButtonId),
-			}}
 		>
 			<div className="flex flex-col gap-3 p-2">
-				<OverflowBox maxHeight="sm:max-h-[320px] max-h-[180px]">
+				<ScrollArea className="max-h-[180px] sm:max-h-80">
 					<p className="max-w-full pb-2 font-sans text-sm font-semibold wrap-break-word whitespace-pre-wrap sm:text-base">
 						{thing.content}
 					</p>
-				</OverflowBox>
+				</ScrollArea>
 
 				<ThingInfoLine
 					icon={
 						<PersonAvatar
 							person={thing.assignedTo ?? { image: undefined, name: "?" }}
-							className={cn("ring-border font-black ring", squircleSize)}
+							className="ring-border h-8.5 w-8.5 font-black ring"
 						/>
 					}
 					label={
@@ -82,13 +81,7 @@ export function ThingDetailDialog({ thingModule, keyboardModule }: ThingDetailDi
 				/>
 
 				<ThingInfoLine
-					icon={
-						<div
-							className={cn("squircle bg-card text-card-foreground ring-border ring", squircleSize)}
-						>
-							<CalendarCogIcon className={iconSize} />
-						</div>
-					}
+					squircle={<CalendarCogIcon className={iconSize} />}
 					label={t("detail.fields.createdAt.label", {
 						date: timestamp(thing.createdAt).ordinalDateTime,
 					})}
@@ -96,17 +89,8 @@ export function ThingDetailDialog({ thingModule, keyboardModule }: ThingDetailDi
 
 				{thing.dueDate && (
 					<ThingInfoLine
+						squircle="!!"
 						className={thing.isDone ? "opacity-50" : ""}
-						icon={
-							<div
-								className={cn(
-									"squircle bg-card text-card-foreground ring-border ring",
-									squircleSize,
-								)}
-							>
-								!!
-							</div>
-						}
 						label={t(`detail.fields.dueDate.${thing.isDone ? "labelDone" : "labelNotDone"}`, {
 							date: timestamp(thing.dueDate).ordinalDate,
 						})}
@@ -115,16 +99,7 @@ export function ThingDetailDialog({ thingModule, keyboardModule }: ThingDetailDi
 
 				{thing.isDone && thing.doneDate && (
 					<ThingInfoLine
-						icon={
-							<div
-								className={cn(
-									"squircle bg-card text-card-foreground ring-border ring",
-									squircleSize,
-								)}
-							>
-								<CheckIcon className={cn("text-emerald-500", iconSize)} />
-							</div>
-						}
+						squircle={<CheckIcon className={cn("text-emerald-500", iconSize)} />}
 						label={t("detail.fields.isDone.label", {
 							date: timestamp(thing.doneDate).ordinalDateTime,
 						})}
@@ -134,11 +109,10 @@ export function ThingDetailDialog({ thingModule, keyboardModule }: ThingDetailDi
 				<div className="flex items-center gap-3">
 					{!thing.isDone && (
 						<button
-							onClick={() => handleUpdateClick(thing)}
+							onClick={() => updateAction(thing)}
 							className={cn(
 								"outlined h-9 w-full rounded-lg",
-								"outline-2 outline-offset-2 outline-transparent",
-								keyboardModule.getIsFocused(updateButtonId) && "outline-ring",
+								"data-[focus=true]:ring-primary ring ring-transparent",
 							)}
 							{...keyboardModule.register(updateButtonId)}
 						>
@@ -146,11 +120,10 @@ export function ThingDetailDialog({ thingModule, keyboardModule }: ThingDetailDi
 						</button>
 					)}
 					<button
-						onClick={() => handleRemoveClick(thing)}
+						onClick={() => removeAction(thing)}
 						className={cn(
 							"outlined h-9 w-full rounded-lg",
-							"outline-2 outline-offset-2 outline-transparent",
-							keyboardModule.getIsFocused(removeButtonId) && "outline-ring",
+							"data-[focus=true]:ring-primary ring ring-transparent",
 						)}
 						{...keyboardModule.register(removeButtonId)}
 					>

@@ -1,9 +1,9 @@
-import * as React from "react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { XIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { DialogState } from "@/hooks/use-modal";
+import type { ModalState } from "@/hooks/use-modal";
 import { useLanguage } from "@/modules/language/use-language";
+import type { ReactNode, ComponentProps } from "react";
 
 const Root = DialogPrimitive.Root;
 const Portal = DialogPrimitive.Portal;
@@ -13,7 +13,7 @@ const Title = DialogPrimitive.Title;
 const Description = DialogPrimitive.Description;
 const Close = DialogPrimitive.Close;
 
-type DialogProps = DialogState & {
+type DialogProps = ModalState & {
 	id?: string;
 	showCloseButton?: boolean;
 	showTitle?: boolean;
@@ -21,8 +21,8 @@ type DialogProps = DialogState & {
 	title: string;
 	description: string;
 	className?: string;
-	children: React.ReactNode;
-	closeButtonProps?: React.ComponentProps<"button">;
+	children: ReactNode;
+	closeButtonProps?: ComponentProps<"button">;
 	autoFocus?: boolean;
 };
 
@@ -30,7 +30,6 @@ export function Dialog({
 	id,
 	open,
 	onOpenChange,
-	defaultOpen,
 	showCloseButton = true,
 	showTitle = false,
 	showDescription = false,
@@ -40,11 +39,12 @@ export function Dialog({
 	children,
 	closeButtonProps,
 	autoFocus = false,
+	ref,
 }: DialogProps) {
 	const { t: tCommon } = useLanguage("common");
 
 	return (
-		<Root data-slot="dialog" open={open} onOpenChange={onOpenChange} defaultOpen={defaultOpen}>
+		<Root data-slot="dialog" open={open} onOpenChange={onOpenChange}>
 			<Portal data-slot="dialog-portal">
 				<Overlay
 					data-slot="dialog-overlay"
@@ -52,6 +52,7 @@ export function Dialog({
 				/>
 				<Content
 					id={id}
+					ref={ref}
 					onOpenAutoFocus={autoFocus ? undefined : (e) => e.preventDefault()}
 					tabIndex={-1}
 					data-slot="dialog-content"

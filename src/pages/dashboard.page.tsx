@@ -1,146 +1,244 @@
 import { PageContent } from "@/components/layout/page-content";
 import { useDnd } from "@/hooks/use-dnd";
-import { ThingDetailDialog } from "@/components/thing-detail-dialog";
+import { ThingDetailModal } from "@/components/thing-detail-modal";
 import { ThingForm } from "@/components/thing-form";
-import { ThingUpdateDialog } from "@/components/thing-update-dialog";
+import { ThingUpdateModal } from "@/components/thing-update-modal";
 import { cn, prefixId } from "@/lib/utils";
 import { GroupCreateForm } from "@/components/group-create-form";
 import { useThingModule } from "@/modules/thing/use-thing-module";
 import { usePersonModule } from "@/modules/person/use-person-module";
 import { useAuthModule } from "@/modules/auth/use-auth-module";
-import { ThingDoneCard } from "@/components/thing-done-card";
+import { ThingStatusCard } from "@/components/thing-status-card";
 import { useGroupModule } from "@/modules/group/use-group-module";
 import { ThingList } from "@/components/thing-list";
 import { PersonList } from "@/components/person-list";
-import { AssignDialog } from "@/components/thing-assign-dialog";
+import { AssignModal } from "@/components/assign-dialog";
 import { useKeyboardModule } from "@/modules/keyboard/use-keyboard-module";
-import { ActionDialog } from "@/components/modals/action-dialog";
 import { GroupJoinForm } from "@/components/group-join-form";
 import { GroupInviteForm } from "@/components/group-invite-form";
-import { ThingRemoveDialog } from "@/components/thing-remove-dialog";
-import { PersonRemoveDialog } from "@/components/person-remove-dialog";
+import { ThingRemoveModal } from "@/components/thing-remove-modal";
+import { PersonRemoveModal } from "@/components/person-remove-modal";
 import { useEffect } from "react";
 import type { SlimItem } from "@/modules/keyboard/keyboard.schema";
 import { useIsMobile } from "@/hooks/use-mobile";
+import type { ThingData } from "@/modules/thing/thing.schema";
+import { useLanguage } from "@/modules/language/use-language";
+import { PersonMenuModal } from "@/components/person-menu-modal";
 
 export function DashboardPage() {
+	const { makeTranslator } = useLanguage();
 	const isMobile = useIsMobile();
-	const authMod = useAuthModule();
-	const thingMod = useThingModule();
-	const personMod = usePersonModule();
-	const groupMod = useGroupModule();
+	const authModule = useAuthModule();
+	const thingModule = useThingModule();
+	const personModule = usePersonModule();
+	const groupModule = useGroupModule();
+	const keyboardModule = useKeyboardModule();
 
-	const keyboardMod = useKeyboardModule();
+	const thingT = makeTranslator("thing");
+	const personT = makeTranslator("person");
+	const groupT = makeTranslator("group");
 
+	// TODO: REMAKE THE ACTIONS TO USE KEYS INSTEAD OF ANON FUNCTIONS
 	useEffect(() => {
-		if (personMod.listQuery.data && thingMod.listQuery.data) {
+		if (personModule.listQuery.data && thingModule.listQuery.data) {
 			const items: SlimItem[] = [];
 
-			if (authMod.noGroup) {
+			if (authModule.noGroup) {
 				items.push({
 					id: prefixId("create", "group"),
-					actions: [{ keys: ["Enter"], fn: groupMod.createAction }],
-				});
+					actions: [{ keys: ["Enter"], fn: groupModule.createAction }],
+				} satisfies SlimItem);
 			} else {
 				items.push({
 					id: prefixId("invite", "group"),
-					actions: [{ keys: ["Enter"], fn: groupMod.inviteAction }],
-				});
+					actions: [{ keys: ["Enter"], fn: groupModule.inviteAction }],
+				} satisfies SlimItem);
 
-				personMod.listQuery.data.forEach((p) =>
-					items.push({
-						id: prefixId(p.id, "person"),
-						actions: [
-							{ keys: ["Enter"], fn: () => personMod.handleAction(p) },
-							{ keys: ["x"], fn: () => personMod.handleRemoveClick(p) },
-						],
-					}),
+				items.push(
+					...personModule.listQuery.data.map(
+						(p) =>
+							({
+								id: prefixId(p.id, "person"),
+								actions: [
+									{ keys: ["Enter"], fn: () => personModule.menuAction(p) },
+									{ keys: ["x"], fn: () => personModule.removeAction(p) },
+								],
+							}) satisfies SlimItem,
+					),
 				);
 			}
 
 			items.push({
 				id: prefixId("form", "thing"),
-				actions: [{ keys: ["Enter"], fn: thingMod.formAction }],
-			});
-
-			thingMod.listQuery.data
-				.filter((t) => !t.isDone)
-				.sort((a, b) => thingMod.handleSortByDate(a, b, "notDone"))
-				.forEach((t) => {
-					items.push({
-						id: prefixId(t.id, "thing"),
-						actions: [
+				actions: [
+					{
+						keys: ["Enter"],
+						fn: () => thingModule.formAction,
+						items: [
 							{
-								keys: ["Enter"],
-								fn: () => thingMod.handleDetailClick(t),
-								items: thingMod.detailItems,
+								id: prefixId("content", "thing_form"),
+								actions: [
+									{
+										keys: ["Enter", "Space"],
+										fn: (el) => {
+											el.focus();
+										},
+									},
+								],
 							},
-							{ keys: ["Space"], fn: () => thingMod.handleActionClick(t) },
-							{ keys: ["c"], fn: () => thingMod.handleDoneClick(t) },
-							{ keys: ["u"], fn: () => thingMod.handleUpdateClick(t) },
-							{ keys: ["a"], fn: () => thingMod.handleAssignClick(t) },
-							{ keys: ["x"], fn: () => thingMod.handleRemoveClick(t), items: thingMod.removeItems },
-						],
-					});
-				});
-
-			thingMod.listQuery.data
-				.filter((t) => t.isDone)
-				.sort((a, b) => thingMod.handleSortByDate(a, b, "done"))
-				.forEach((t) => {
-					items.push({
-						id: prefixId(t.id, "thing"),
-						actions: [
 							{
-								keys: ["Enter"],
-								fn: () => thingMod.handleDetailClick(t),
-								items: thingMod.detailItems,
-							},
-							{ keys: ["Space"], fn: () => thingMod.handleActionClick(t) },
-							{ keys: ["c"], fn: () => thingMod.handleDoneClick(t) },
-							{
-								keys: ["x"],
-								fn: () => thingMod.handleRemoveClick(t),
-								items: thingMod.removeItems,
+								id: prefixId("dueDate", "thing_form"),
+								actions: [
+									{
+										keys: ["Enter", "Space"],
+										fn: (el) => {
+											el.click();
+										},
+									},
+								],
 							},
 						],
-					});
-				});
+						rangeId: prefixId("form", "thing"),
+					},
+				],
+			} satisfies SlimItem);
 
-			keyboardMod.setInitialItems(items);
+			const updateItems = [
+				{
+					id: prefixId("content", "thing_update_modal"),
+					actions: [
+						{
+							keys: ["Enter", "Space"],
+							fn: (el) => {
+								el.focus();
+							},
+						},
+					],
+				},
+				{
+					id: prefixId("dueDate", "thing_update_modal"),
+					actions: [
+						{
+							keys: ["Enter", "Space"],
+							fn: (el) => {
+								el.click();
+							},
+						},
+					],
+				},
+				{
+					id: prefixId("assignedToId", "thing_update_modal"),
+					actions: [
+						{
+							keys: ["Enter", "Space"],
+							fn: (el) => {
+								el.click();
+							},
+						},
+					],
+				},
+			] satisfies SlimItem[];
+
+			const removeItems = (t: ThingData): SlimItem[] =>
+				[
+					{
+						id: prefixId("confirm", "thing_remove"),
+						actions: [{ keys: ["Enter"], fn: () => thingModule.removeConfirmAction(t) }],
+					},
+					{
+						id: prefixId("cancel", "thing_remove"),
+						actions: [{ keys: ["Enter"], fn: thingModule.removeCancelAction }],
+					},
+				] satisfies SlimItem[];
+
+			const detailItems = (t: ThingData) =>
+				[
+					{
+						id: prefixId("update", "thing_detail"),
+						actions: [
+							{
+								keys: ["Enter", "Space"],
+								fn: () => thingModule.updateAction,
+								items: updateItems,
+								rangeId: thingModule.updateModal.id,
+							},
+						],
+					},
+					{
+						id: prefixId("remove", "thing_detail"),
+						actions: [
+							{
+								keys: ["Enter", "Space"],
+								fn: () => thingModule.removeAction(t),
+								items: removeItems(t),
+								rangeId: thingModule.removeModal.id,
+							},
+						],
+					},
+				] satisfies SlimItem[];
+
+			// not done things are first
+			items.push(
+				...thingModule.listQuery.data
+					.sort((a, b) => Number(a.isDone) - Number(b.isDone))
+					.map(
+						(t) =>
+							({
+								id: prefixId(t.id, "thing"),
+								actions: [
+									{
+										keys: ["Enter"],
+										fn: () => thingModule.detailOpenAction(t),
+										items: detailItems(t),
+										rangeId: thingModule.detailModal.id,
+									},
+									{ keys: ["Space"], fn: () => thingModule.menuAction(t) },
+									{ keys: ["c"], fn: () => thingModule.statusAction(t) },
+									{
+										keys: ["x"],
+										fn: () => thingModule.removeAction(t),
+										items: removeItems(t),
+										rangeId: thingModule.removeModal.id,
+									},
+								],
+							}) satisfies SlimItem,
+					),
+			);
+
+			keyboardModule.setInitialItems(items);
 		}
-	}, [keyboardMod, personMod, groupMod, thingMod, authMod.noGroup]);
+	}, [keyboardModule, personModule, groupModule, thingModule, authModule.noGroup]);
 
 	const dnd = useDnd({
-		onDrop: (sourceData, targetData) => {
-			const sourceIsPerson = sourceData.sourceId.startsWith("person");
-			const sourceIsThing = sourceData.sourceId.startsWith("thing");
-			const targetIsThing = targetData.targetId.startsWith("thing");
-			const targetIsDone = targetData.targetId === "done";
-			const targetIsNotDone = targetData.targetId === "notDone";
+		onDrop: (source, target) => {
+			const sourceIsPerson = source.sourceId.startsWith("person");
+			const sourceIsThing = source.sourceId.startsWith("thing");
+			const targetIsThing = target.targetId.startsWith("thing");
+			const targetIsDone = target.targetId === "done";
+			const targetIsNotDone = target.targetId === "notDone";
 
 			if (sourceIsPerson && targetIsThing) {
-				const personId = Number(prefixId(sourceData.sourceId));
-				const thingId = Number(prefixId(targetData.targetId));
-				const thing = thingMod.find(thingId);
+				const personId = Number(prefixId(source.sourceId));
+				const thingId = Number(prefixId(target.targetId));
+				const thing = thingModule.find(thingId);
 				if (thing?.assignedToId !== personId) {
-					thingMod.assignMutation.mutate({ thingId, personId });
+					thingModule.assignMutation.mutate({ thingId, personId });
 				}
 			}
 
 			if (sourceIsThing && targetIsDone) {
-				const thingId = Number(prefixId(sourceData.sourceId));
-				const thing = thingMod.find(thingId);
+				const thingId = Number(prefixId(source.sourceId));
+				const thing = thingModule.find(thingId);
 				if (thing) {
-					thingMod.handleDoneClick(thing, true);
+					thingModule.statusAction(thing, true);
 				}
 			}
 
 			if (sourceIsThing && targetIsNotDone) {
-				const thingId = Number(prefixId(sourceData.sourceId));
-				const thing = thingMod.find(thingId);
+				const thingId = Number(prefixId(source.sourceId));
+				const thing = thingModule.find(thingId);
 				if (thing) {
-					thingMod.handleDoneClick(thing, false);
+					thingModule.statusAction(thing, false);
 				}
 			}
 		},
@@ -148,14 +246,18 @@ export function DashboardPage() {
 
 	return (
 		<PageContent>
-			<ActionDialog {...thingMod.actionDialog} />
-			<ActionDialog {...personMod.actionDialog} />
-			<ThingRemoveDialog thingModule={thingMod} keyboardModule={keyboardMod} />
-			<PersonRemoveDialog personModule={personMod} />
-			<ThingDetailDialog thingModule={thingMod} keyboardModule={keyboardMod} />
-			<ThingUpdateDialog thingModule={thingMod} personModule={personMod} />
-			<AssignDialog variant="thing" thingModule={thingMod} personModule={personMod} />
-			<AssignDialog variant="person" thingModule={thingMod} personModule={personMod} />
+			<PersonMenuModal personModule={personModule} authModule={authModule} />
+			<PersonRemoveModal personModule={personModule} />
+			<AssignModal variant="person" thingModule={thingModule} personModule={personModule} />
+
+			<ThingRemoveModal thingModule={thingModule} keyboardModule={keyboardModule} />
+			<ThingDetailModal thingModule={thingModule} keyboardModule={keyboardModule} />
+			<ThingUpdateModal
+				thingModule={thingModule}
+				personModule={personModule}
+				keyboardModule={keyboardModule}
+			/>
+			<AssignModal variant="thing" thingModule={thingModule} personModule={personModule} />
 
 			<div className="grid grid-cols-12 gap-8 pb-14">
 				<div className="col-span-4 hidden sm:block">
@@ -163,36 +265,36 @@ export function DashboardPage() {
 						<h1
 							className={cn(
 								"font-bold",
-								authMod.noGroup ? "text-foreground/70 text-lg" : "text-xl",
+								authModule.noGroup ? "text-foreground/70 text-lg" : "text-xl",
 							)}
 						>
-							{authMod.noGroup
-								? groupMod.t("noGroup")
-								: personMod.t("titleWithGroup", {
-										groupName: groupMod.groupQuery.data?.title,
+							{authModule.noGroup
+								? groupT("noGroup")
+								: personT("titleWithGroup", {
+										groupName: groupModule.groupQuery.data?.title,
 									})}
 						</h1>
-						{authMod.noGroup ? (
-							<GroupCreateForm groupModule={groupMod} keyboardModule={keyboardMod} />
+						{authModule.noGroup ? (
+							<GroupCreateForm groupModule={groupModule} keyboardModule={keyboardModule} />
 						) : (
 							<div className="flex flex-col gap-3">
-								<GroupInviteForm groupModule={groupMod} keyboardModule={keyboardMod} />
-								<PersonList personModule={personMod} keyboardModule={keyboardMod} dnd={dnd} />
+								<GroupInviteForm groupModule={groupModule} keyboardModule={keyboardModule} />
+								<PersonList personModule={personModule} keyboardModule={keyboardModule} dnd={dnd} />
 							</div>
 						)}
-						{authMod.pendingMemberships && (
+						{authModule.pendingMemberships && (
 							<div className="flex flex-col gap-3">
-								{authMod.pendingMemberships.map((m) => (
+								{authModule.pendingMemberships.map((m) => (
 									<div key={m.groupId}>
 										<h1 className="mb-2 text-lg font-bold">
-											{groupMod.t("form.fields.join.title", {
+											{groupT("form.fields.join.title", {
 												groupName: m.group.title,
 											})}
 										</h1>
 										<GroupJoinForm
 											key={m.groupId}
-											groupModule={groupMod}
-											keyboardModule={keyboardMod}
+											groupModule={groupModule}
+											keyboardModule={keyboardModule}
 										/>
 									</div>
 								))}
@@ -203,16 +305,12 @@ export function DashboardPage() {
 
 				<div className="col-span-12 md:col-span-4">
 					<div className="flex flex-1 flex-col gap-3">
-						<h1 className="text-xl font-bold">{thingMod.t("title")}</h1>
-						<ThingForm thingModule={thingMod} keyboardModule={keyboardMod} />
-						<ThingDoneCard
-							thingModule={thingMod}
-							dnd={dnd}
-							variant={isMobile ? "done" : "notDone"}
-						/>
+						<h1 className="text-xl font-bold">{thingT("title")}</h1>
+						<ThingForm thingModule={thingModule} keyboardModule={keyboardModule} />
+						<ThingStatusCard dnd={dnd} variant={isMobile ? "done" : "notDone"} />
 						<ThingList
-							thingModule={thingMod}
-							keyboardModule={keyboardMod}
+							thingModule={thingModule}
+							keyboardModule={keyboardModule}
 							dnd={dnd}
 							variant="notDone"
 						/>
@@ -221,15 +319,11 @@ export function DashboardPage() {
 
 				<div className="col-span-12 md:col-span-4">
 					<div className="flex flex-1 flex-col gap-3">
-						<h1 className="text-xl font-bold">{thingMod.t("done.title")}</h1>
-						<ThingDoneCard
-							thingModule={thingMod}
-							dnd={dnd}
-							variant={isMobile ? "notDone" : "done"}
-						/>
+						<h1 className="text-xl font-bold">{thingT("done.title")}</h1>
+						<ThingStatusCard dnd={dnd} variant={isMobile ? "notDone" : "done"} />
 						<ThingList
-							thingModule={thingMod}
-							keyboardModule={keyboardMod}
+							thingModule={thingModule}
+							keyboardModule={keyboardModule}
 							dnd={dnd}
 							variant="done"
 						/>

@@ -1,40 +1,38 @@
 import { ConfirmDialog } from "@/components/modals/confirm-dialog";
-import { cn, prefixId } from "@/lib/utils";
+import { prefixId } from "@/lib/utils";
 import type { UseKeyboardModuleReturn } from "@/modules/keyboard/use-keyboard-module";
 import { useLanguage } from "@/modules/language/use-language";
 import type { UseThingModuleReturn } from "@/modules/thing/use-thing-module";
 
-type ThingRemoveDialogProps = {
+type ThingRemoveModalProps = {
 	thingModule: UseThingModuleReturn;
 	keyboardModule: UseKeyboardModuleReturn;
 };
 
-export function ThingRemoveDialog({ thingModule, keyboardModule }: ThingRemoveDialogProps) {
+export function ThingRemoveModal({ thingModule, keyboardModule }: ThingRemoveModalProps) {
 	const { t } = useLanguage("thing");
-	const dialog = thingModule.removeDialog;
-	const handleConfirmRemove = thingModule.handleConfirmRemove;
+	const modal = thingModule.removeModal;
+	const removeConfirmAction = thingModule.removeConfirmAction;
+	const removeCancelAction = thingModule.removeCancelAction;
 	const confirmId = prefixId("confirm", "thing_remove");
 	const cancelId = prefixId("cancel", "thing_remove");
+	const title = t("remove.confirm.title");
+	const description = t("remove.confirm.description");
 
 	return (
 		<ConfirmDialog
-			{...dialog}
-			title={t("remove.confirm.title")}
-			description={t("remove.confirm.description")}
-			onConfirm={handleConfirmRemove}
+			{...modal}
+			title={title}
+			description={description}
+			onConfirm={removeConfirmAction}
+			onCancel={removeCancelAction}
 			confirmProps={{
 				...keyboardModule.register(confirmId),
-				className: cn(
-					"outline-2 outline-offset-2 outline-transparent",
-					keyboardModule.getIsFocused(confirmId) && "outline-ring",
-				),
+				className: "data-[focus=true]:ring-primary ring ring-transparent",
 			}}
 			cancelProps={{
 				...keyboardModule.register(cancelId),
-				className: cn(
-					"outline-2 outline-offset-2 outline-transparent",
-					keyboardModule.getIsFocused(cancelId) && "outline-ring",
-				),
+				className: "data-[focus=true]:ring-primary ring ring-transparent",
 			}}
 		/>
 	);
