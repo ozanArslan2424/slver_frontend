@@ -1,7 +1,7 @@
 import type { StringBoolean } from "@/lib/helper.type";
 import { cn, toBoolean, toStringBoolean } from "@/lib/utils";
 import { CheckIcon } from "lucide-react";
-import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useState, type ComponentProps, type ReactNode } from "react";
 
 type CheckboxProps = {
 	id?: string;
@@ -9,9 +9,8 @@ type CheckboxProps = {
 	value?: boolean;
 	defaultValue?: boolean;
 	onChange?: (checked: boolean) => void;
-	className?: string;
 	renderChildren?: (checked: boolean) => ReactNode;
-};
+} & ComponentProps<"button">;
 
 export function Checkbox({
 	id,
@@ -21,6 +20,7 @@ export function Checkbox({
 	onChange,
 	className,
 	renderChildren,
+	...rest
 }: CheckboxProps) {
 	const isControlled = value !== undefined;
 	const [internal, setInternal] = useState<StringBoolean>(
@@ -43,6 +43,7 @@ export function Checkbox({
 		<>
 			<input type="text" name={name} value={internal} readOnly className="sr-only" />
 			<button
+				{...rest}
 				id={id}
 				type="button"
 				role="checkbox"

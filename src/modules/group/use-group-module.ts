@@ -7,15 +7,11 @@ import {
 	GroupJoinSchema,
 } from "@/modules/group/group.schema";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { useRef } from "react";
 
 export type UseGroupModuleReturn = ReturnType<typeof useGroupModule>;
 
 export function useGroupModule() {
 	const { group } = useAppContext();
-	const createInputRef = useRef<HTMLInputElement | null>(null);
-	const joinInputRef = useRef<HTMLInputElement | null>(null);
-	const inviteInputRef = useRef<HTMLInputElement | null>(null);
 
 	const groupQuery = useQuery(group.get());
 
@@ -54,6 +50,7 @@ export function useGroupModule() {
 
 	const createForm = useForm({
 		schema: GroupCreateSchema,
+		mutation: groupCreateMutation,
 		onSubmit: ({ values }) => {
 			groupCreateMutation.mutate(values);
 		},
@@ -61,6 +58,7 @@ export function useGroupModule() {
 
 	const joinForm = useForm({
 		schema: GroupJoinSchema,
+		mutation: groupJoinMutation,
 		onSubmit: ({ values }) => {
 			groupJoinMutation.mutate(values);
 		},
@@ -68,6 +66,7 @@ export function useGroupModule() {
 
 	const inviteForm = useForm({
 		schema: GroupInviteSchema,
+		mutation: groupInviteMutation,
 		defaultValues: {
 			role: false,
 		},
@@ -76,20 +75,10 @@ export function useGroupModule() {
 		},
 	});
 
-	const createAction = () => createInputRef.current?.focus();
-	const inviteAction = () => inviteInputRef.current?.focus();
-
 	return {
 		groupQuery,
-		groupCreateMutation,
-		groupJoinMutation,
 		createForm,
 		joinForm,
 		inviteForm,
-		createInputRef,
-		joinInputRef,
-		inviteInputRef,
-		createAction,
-		inviteAction,
 	};
 }

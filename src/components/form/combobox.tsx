@@ -88,7 +88,6 @@ export function Combobox<O extends Option>({
 				id={`${id ?? name}_popover`}
 				open={open}
 				onOpenChange={onOpenChange}
-				defaultOpen={false}
 				className="w-auto overflow-hidden p-0"
 				align={align}
 				side={side}

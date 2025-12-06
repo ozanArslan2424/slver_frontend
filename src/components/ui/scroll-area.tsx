@@ -30,9 +30,9 @@ export function ScrollArea({
 	}, []);
 
 	return (
-		<ScrollAreaPrimitive.Root data-slot="scroll-area">
-			<ScrollAreaPrimitive.Viewport data-slot="scroll-area-viewport">
-				<div ref={containerRef} className={cn("relative", className)}>
+		<ScrollAreaPrimitive.Root data-slot="scroll-area" tabIndex={-1}>
+			<ScrollAreaPrimitive.Viewport data-slot="scroll-area-viewport" tabIndex={-1}>
+				<div ref={containerRef} className={cn("relative", className)} tabIndex={-1}>
 					{children}
 					{isOverflowing && (
 						<div

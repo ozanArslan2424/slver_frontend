@@ -1,8 +1,18 @@
 import { useIsMobile } from "@/hooks/use-mobile";
 import { getNextIndex, isObjectWith, isValidIndex, toStringBoolean } from "@/lib/utils";
-import type { SlimElementProps, SlimItem } from "@/modules/keyboard/keyboard.schema";
+import type {
+	SlimElementProps,
+	SlimDispatch,
+	SlimDispatchBase,
+	SlimActions,
+	SlimActionDefinition,
+	SlimVisualElement,
+} from "@/modules/keyboard/keyboard.schema";
 import { useModeContext } from "@/modules/context/mode.context";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
+import { TXT } from "@/lib/txt.namespace";
+import { Obj } from "@/lib/obj.namespace";
+import { useRangeContext } from "@/modules/context/range.context";
 
 const focusedElementSelector = "[data-visual-item=true][data-focus=true]";
 const visualElementSelector = "*[data-visual-item=true]";
@@ -10,54 +20,40 @@ const inputElementSelector = "input, textarea";
 
 export type UseKeyboardModuleReturn = ReturnType<typeof useKeyboardModule>;
 
-export function useKeyboardModule() {
+const stringSeparator = "_&_";
+
+// TODO: When a modal is closed using the mouse, everything should reset
+export function useKeyboardModule<T extends SlimDispatchBase>(dispatch: SlimDispatch<T>) {
 	const isMobile = useIsMobile();
+	const { range } = useRangeContext();
 	const { mode, setMode, setKeys } = useModeContext();
-	const [range, setRange] = useState<HTMLElement>(document.documentElement);
 	const [index, setIndex] = useState(0);
-	const hash = useRef<string>("");
-	const map = useRef(new Map<string, SlimItem>());
-
-	const setItems = useCallback((items: SlimItem[]) => {
-		let currentHash = "";
-
-		for (let i = 0; i < items.length; i++) {
-			currentHash += items[i].id;
-			if (i < items.length - 1) currentHash += "|";
-		}
-
-		if (currentHash !== hash.current) {
-			hash.current = currentHash;
-			map.current.clear();
-
-			requestAnimationFrame(() => {
-				for (const item of items) {
-					map.current.set(item.id, item);
-				}
-			});
-		}
-	}, []);
 
 	useEffect(() => {
-		console.log(index);
+		const getFocusedElement = (): SlimVisualElement | null => {
+			const el = range.querySelector(focusedElementSelector) as HTMLElement | null;
+			if (!el) return null;
 
-		const getInputElements = () => {
-			return Array.from(document.querySelectorAll(inputElementSelector)) as HTMLElement[];
+			return Object.assign(el, {
+				activate: () => {
+					if (el instanceof HTMLInputElement) {
+						return el.focus();
+					}
+					if (el instanceof HTMLTextAreaElement) {
+						return el.focus();
+					}
+					return el.click();
+				},
+			});
 		};
 
-		const getVisualElements = () => {
-			const all = Array.from(range.querySelectorAll(visualElementSelector)) as HTMLElement[];
-			const parentIds = Array.from(map.current.keys());
-			return all.filter((el) => parentIds.includes(el.id));
+		const getVisualElements = (): HTMLElement[] | null => {
+			const nodeList = range.querySelectorAll(visualElementSelector);
+			if (nodeList.length === 0) return null;
+			return Array.from(nodeList) as HTMLElement[];
 		};
 
-		const getFocusedElement = () => {
-			return range.querySelector(focusedElementSelector) as HTMLElement | null;
-		};
-
-		const updateFocus = (nextIndex?: number) => {
-			const elements = getVisualElements();
-
+		const updateFocus = (elements: HTMLElement[], nextIndex?: number) => {
 			for (const element of elements) {
 				element.setAttribute("data-focus", toStringBoolean(false));
 			}
@@ -69,10 +65,9 @@ export function useKeyboardModule() {
 			focusedElement.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" });
 		};
 
-		const navigate = (to: "next" | "prev" | number) => {
+		const navigate = (elements: HTMLElement[], to: "next" | "prev" | number) => {
 			setIndex((prevIndex) => {
 				const isNormal = mode === "normal";
-				const elements = getVisualElements();
 				let nextIndex: number = prevIndex;
 
 				if (isNormal) {
@@ -87,16 +82,45 @@ export function useKeyboardModule() {
 					nextIndex = to;
 				}
 
-				updateFocus(nextIndex);
+				updateFocus(elements, nextIndex);
 				return nextIndex;
 			});
 		};
 
+		const act = (e: KeyboardEvent) => {
+			const actionKey = e.key === " " ? "Space" : e.key;
+
+			const focusedElement = getFocusedElement();
+			if (!focusedElement) return;
+
+			const attrValue = focusedElement.getAttribute("data-actions");
+			if (!attrValue) return [];
+
+			const actions = TXT.split(";", attrValue).map((str) => {
+				const [key, fn, payload] = TXT.split(stringSeparator, str, 3);
+				return { key, fn, payload: payload !== "{}" ? JSON.parse(payload) : undefined };
+			});
+
+			if (!actions) return;
+
+			const action = actions.find((a) => a.key === actionKey);
+
+			if (!action) return;
+
+			e.preventDefault();
+
+			dispatch({ fn: action.fn, payload: action.payload } as T, focusedElement);
+		};
+
 		const reset = () => {
-			setRange(document.documentElement);
-			updateFocus();
 			setMode("normal");
 			setKeys([]);
+			requestAnimationFrame(() => {
+				const elements = getVisualElements();
+				if (elements) {
+					updateFocus(elements);
+				}
+			});
 		};
 
 		const documentKeydown = (e: KeyboardEvent) => {
@@ -113,55 +137,38 @@ export function useKeyboardModule() {
 				return;
 			}
 
+			const elements = getVisualElements();
+			if (!elements) {
+				setMode("normal");
+				return;
+			}
+
 			setKeys((p) => [...p, e.code]);
 
-			if (isValidIndex(parseInt(e.key), map.current)) {
+			if (isValidIndex(parseInt(e.key), elements)) {
 				e.preventDefault();
-				navigate(parseInt(e.key));
+				navigate(elements, parseInt(e.key));
 				return;
 			}
 
 			if (nextKeys.includes(e.code)) {
 				e.preventDefault();
-				navigate("next");
+				navigate(elements, "next");
 				return;
 			}
 
 			if (prevKeys.includes(e.code)) {
 				e.preventDefault();
-				navigate("prev");
+				navigate(elements, "prev");
 				return;
 			}
 
-			const focusedElement = getFocusedElement();
-			if (!focusedElement) return;
-
-			const item = map.current.get(focusedElement.id);
-			const keyPress = e.key === " " ? "Space" : e.key;
-			const action = item?.actions.find((action) => action.keys.includes(keyPress));
-			if (!action) return;
-
-			e.preventDefault();
-			console.log(action.fn.toString());
-			action.fn(focusedElement);
-			requestAnimationFrame(() => {
-				if (action.items && action.items.length !== 0) {
-					const range = document.getElementById(action.rangeId);
-					if (!range)
-						throw new Error(
-							`Can't have child actions without a range ID. Check your schema for: ${item?.id}`,
-						);
-					setRange(range);
-					setItems(action.items);
-					updateFocus();
-				}
-			});
+			act(e);
 		};
 
 		const inputKeydown = (e: Event) => {
 			const isKeyDown = isObjectWith<{ code: string }>(e, "code");
 			if (!isKeyDown) return;
-			const nextKeys = ["Tab"];
 			const escapeKeys = ["Escape"];
 
 			if (escapeKeys.includes(e.code)) {
@@ -169,12 +176,6 @@ export function useKeyboardModule() {
 				const target = e.target as HTMLInputElement | HTMLTextAreaElement;
 				target.blur();
 				reset();
-				return;
-			}
-
-			if (nextKeys.includes(e.code)) {
-				e.preventDefault();
-				navigate("next");
 				return;
 			}
 		};
@@ -187,37 +188,37 @@ export function useKeyboardModule() {
 			setMode("normal");
 		};
 
-		const inputs = getInputElements();
-		range.addEventListener("keydown", documentKeydown);
+		const inputs = Array.from(document.querySelectorAll(inputElementSelector));
+
+		document.addEventListener("keydown", documentKeydown);
 		inputs.forEach((input) => {
 			input.addEventListener("keydown", inputKeydown);
 			input.addEventListener("focus", inputFocus);
 			input.addEventListener("blur", inputBlur);
 		});
 		return () => {
-			range.removeEventListener("keydown", documentKeydown);
+			document.removeEventListener("keydown", documentKeydown);
 			inputs.forEach((input) => {
 				input.removeEventListener("keydown", inputKeydown);
 				input.removeEventListener("focus", inputFocus);
 				input.removeEventListener("blur", inputBlur);
 			});
 		};
-	}, [mode, index, range, setItems, isMobile, setMode, setKeys]);
+	}, [mode, index, range, isMobile, setMode, setKeys, dispatch]);
 
-	const register = (id: string): SlimElementProps => ({
-		id,
-		tabIndex: -1,
-		"data-visual-item": true,
-	});
-
-	const setInitialItems = (initialItems: SlimItem[]) => {
-		if (range === document.documentElement) {
-			setItems(initialItems);
-		}
+	const register = (id: string, actions: SlimActions<T>): SlimElementProps => {
+		const entries = Obj.entries<SlimActionDefinition<T["fn"], T["payload"]>>(actions);
+		const actionsAttr = entries
+			.map(([key, a]) => [key, a.fn, JSON.stringify(a.payload ?? "{}")].join(stringSeparator))
+			.join(";");
+		return {
+			id,
+			tabIndex: -1,
+			className: "data-[focus=true]:ring-primary ring ring-transparent",
+			"data-visual-item": true,
+			"data-actions": actionsAttr,
+		};
 	};
 
-	return {
-		register,
-		setInitialItems,
-	};
+	return register;
 }

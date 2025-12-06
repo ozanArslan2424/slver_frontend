@@ -2,23 +2,23 @@ import { Skeleton } from "@/components/ui/skeleton";
 import type { UseDndReturn } from "@/hooks/use-dnd";
 import { cn, prefixId, repeat } from "@/lib/utils";
 import { ErrorCard } from "@/components/ui/error-card";
-import type { UseKeyboardModuleReturn } from "@/modules/keyboard/use-keyboard-module";
 import type { UsePersonModuleReturn } from "@/modules/person/use-person-module";
-import { Status } from "@/modules/person/person.schema";
+import { Status, type PersonData } from "@/modules/person/person.schema";
 import { useAppContext } from "@/modules/context/app.context";
 import { useLanguage } from "@/modules/language/use-language";
+import type { ComponentProps } from "react";
 
 type PersonListProps = {
 	personModule: UsePersonModuleReturn;
-	keyboardModule: UseKeyboardModuleReturn;
 	dnd: UseDndReturn;
+	cardProps: (person: PersonData) => ComponentProps<"div">;
 };
 
-export function PersonList({ personModule, keyboardModule, dnd }: PersonListProps) {
+export function PersonList({ personModule, dnd, cardProps }: PersonListProps) {
 	const { t } = useLanguage("person");
 	const { store } = useAppContext();
 	const listQuery = personModule.listQuery;
-	const menuAction = personModule.menuAction;
+	const handleOpenMenuModal = personModule.handleOpenMenuModal;
 
 	if (listQuery.isPending) {
 		return (
@@ -61,20 +61,21 @@ export function PersonList({ personModule, keyboardModule, dnd }: PersonListProp
 					.join("");
 				const group = person.memberships.find((m) => m.groupId === store.get("groupId"));
 				const status = group?.status;
+				const props = cardProps(person);
 				return (
 					<div
 						key={id}
-						{...keyboardModule.register(id)}
+						{...props}
 						{...dnd.registerSource({ sourceId: id })}
-						onClick={() => menuAction(person)}
+						onClick={() => handleOpenMenuModal(person.id)}
 						style={{
 							animationDelay: `${delay}ms`,
 						}}
 						className={cn(
 							"relative",
 							"hover:border-primary animate_down aspect-square cursor-grab overflow-hidden rounded-md border border-transparent transition-all active:cursor-grabbing",
-							"data-[focus=true]:ring-primary ring ring-transparent",
 							"h-full w-full",
+							props.className,
 						)}
 					>
 						{status === Status.pending && (

@@ -10,10 +10,6 @@ export function LandingRegisterForm({ authModule }: LandingRegisterFormProps) {
 	const t = authModule.t;
 	const form = authModule.registerForm;
 	const isPending = authModule.registerForm.isPending;
-	const emailLabel = t("register.email.label");
-	const nameLabel = t("register.name.label");
-	const passwordLabel = t("register.password.label");
-	const submitLabel = t("register.submit");
 
 	return (
 		<form className="flex flex-col gap-3 px-2 pt-6 sm:gap-4" {...form.methods}>
@@ -26,7 +22,7 @@ export function LandingRegisterForm({ authModule }: LandingRegisterFormProps) {
 						className="ghost"
 						autoComplete="name"
 						type="text"
-						placeholder={nameLabel}
+						placeholder={t("register.name.label")}
 						required
 					/>
 				</FormField>
@@ -41,7 +37,7 @@ export function LandingRegisterForm({ authModule }: LandingRegisterFormProps) {
 						className="ghost"
 						autoComplete="email"
 						type="email"
-						placeholder={emailLabel}
+						placeholder={t("register.email.label")}
 						required
 					/>
 				</FormField>
@@ -56,14 +52,14 @@ export function LandingRegisterForm({ authModule }: LandingRegisterFormProps) {
 						className="ghost"
 						autoComplete="new-password"
 						type="password"
-						placeholder={passwordLabel}
+						placeholder={t("register.password.label")}
 						required
 					/>
 				</FormField>
 			</div>
 
 			<button type="submit" className="lg">
-				{isPending ? <LoaderIcon className="animate-spin" /> : submitLabel}
+				{isPending ? <LoaderIcon className="animate-spin" /> : t("register.submit")}
 			</button>
 		</form>
 	);

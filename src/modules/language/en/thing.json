@@ -2,7 +2,7 @@
 	"title": "Things",
 	"form": {
 		"fields": {
-			"title": {
+			"content": {
 				"label": "New thing",
 				"title": "This is where you write the contents of the thing to save it.",
 				"error": "Everything must have some content"

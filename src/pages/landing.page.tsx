@@ -16,55 +16,53 @@ import {
 import { Link } from "react-router";
 
 export function LandingPage() {
-	const { makeTranslator } = useLanguage();
-	const tLanding = makeTranslator("landing");
-	const tCommon = makeTranslator("common");
 	const authModule = useAuthModule();
+	const { t } = useLanguage("landing");
 
-	const appTitle = tLanding("app.title");
-	const appHighlight = tLanding("app.highlight");
+	const appTitle = t("app.title");
+	const appHighlight = t("app.highlight");
 	const appDescription = [
 		{
 			Icon: AppWindowIcon,
-			label: tLanding("app.description1"),
+			label: t("app.description1"),
 		},
 		{
 			Icon: ClipboardIcon,
-			label: tLanding("app.description2"),
+			label: t("app.description2"),
 		},
 		{
 			Icon: SquareDashed,
-			label: tLanding("app.description3"),
+			label: t("app.description3"),
 		},
 		{
 			Icon: CircleSlashIcon,
-			label: tLanding("app.description4"),
+			label: t("app.description4"),
 		},
 	];
 
-	const youTitle = tLanding("you.title");
-	const youHighlight = tLanding("you.highlight");
+	const youTitle = t("you.title");
+	const youHighlight = t("you.highlight");
 	const youDescription = [
 		{
 			Icon: PersonStandingIcon,
-			label: tLanding("you.description1"),
+			label: t("you.description1"),
 		},
 		{
 			Icon: GroupIcon,
-			label: tLanding("you.description2"),
+			label: t("you.description2"),
 		},
 		{
 			Icon: TargetIcon,
-			label: tLanding("you.description3"),
+			label: t("you.description3"),
 		},
 		{
 			Icon: Clock9Icon,
-			label: tLanding("you.description4"),
+			label: t("you.description4"),
 		},
 	];
 
-	const startTitle = tLanding("start.title");
-	const startHighlight = tLanding("start.highlight");
+	const startTitle = t("start.title");
+	const startHighlight = t("start.highlight");
 
 	return (
 		<div className="flex min-h-screen flex-col justify-between">
@@ -127,7 +125,7 @@ export function LandingPage() {
 					{authModule.meQuery.data ? (
 						<div className="flex items-center justify-center py-4">
 							<Link to={clientRoutes.dashboard} className="button lg w-full">
-								{tCommon("dashboard")}
+								{t("dashboard")}
 							</Link>
 						</div>
 					) : (
@@ -138,7 +136,7 @@ export function LandingPage() {
 
 			<footer className="text-foreground/70 container mx-auto px-4 py-8 text-center">
 				<p>
-					{tLanding("footer")} <a href="https://ozanarslan.vercel.app">Ozan Arslan</a>.
+					{t("footer")} <a href="https://ozanarslan.vercel.app">Ozan Arslan</a>.
 				</p>
 			</footer>
 		</div>

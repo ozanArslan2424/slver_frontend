@@ -6,36 +6,34 @@ import type { UsePersonModuleReturn } from "@/modules/person/use-person-module";
 import type { UseThingModuleReturn } from "@/modules/thing/use-thing-module";
 import { CalendarPlusIcon, ChevronDownIcon } from "lucide-react";
 import { PersonAvatar } from "@/components/ui/person-avatar";
-import { cn, prefixId } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { useLanguage } from "@/modules/language/use-language";
-import type { UseKeyboardModuleReturn } from "@/modules/keyboard/use-keyboard-module";
+import type { ComponentProps } from "react";
 
 type ThingUpdateModalProps = {
 	thingModule: UseThingModuleReturn;
 	personModule: UsePersonModuleReturn;
-	keyboardModule: UseKeyboardModuleReturn;
+	textareaProps: ComponentProps<"textarea">;
+	datepickerProps: ComponentProps<"button">;
+	comboboxProps: ComponentProps<"button">;
+	cancelProps: ComponentProps<"button">;
+	submitProps: ComponentProps<"button">;
 };
 
 export function ThingUpdateModal({
 	thingModule,
 	personModule,
-	keyboardModule,
+	textareaProps,
+	datepickerProps,
+	comboboxProps,
+	cancelProps,
+	submitProps,
 }: ThingUpdateModalProps) {
 	const { t, timestamp } = useLanguage("thing");
 	const thing = thingModule.active;
 	const modal = thingModule.updateModal;
 	const form = thingModule.updateForm;
-	const mutation = thingModule.updateMutation;
-	const isPending = mutation.isPending;
-	const contentId = prefixId("content", "thing_update_modal");
-	const dueDateId = prefixId("dueDate", "thing_update_modal");
-	const assignedToIdId = prefixId("assignedToId", "thing_update_modal");
-
-	function handleRetry() {
-		if (mutation.isError) {
-			mutation.mutate(mutation.variables);
-		}
-	}
+	const isPending = form.isPending;
 
 	if (!thing) return null;
 	return (
@@ -44,12 +42,12 @@ export function ThingUpdateModal({
 				<div className="flex flex-1 flex-col gap-3">
 					<FormField form={form} name="content" id="content">
 						<textarea
-							placeholder={t("form.fields.title.label")}
-							title={t("form.fields.title.title")}
+							{...textareaProps}
+							className={cn("min-h-40", textareaProps.className)}
+							placeholder={t("form.fields.content.label")}
+							title={t("form.fields.content.title")}
 							required
-							className="min-h-40"
 							disabled={isPending}
-							{...keyboardModule.register(contentId)}
 						/>
 					</FormField>
 
@@ -59,8 +57,11 @@ export function ThingUpdateModal({
 							endDate={new Date(2040, 0, 1)}
 							renderTrigger={(open, val) => (
 								<button
-									{...keyboardModule.register(dueDateId)}
-									className="outlined neon lg w-full justify-between font-normal"
+									{...datepickerProps}
+									className={cn(
+										"outlined neon lg w-full justify-between font-normal",
+										datepickerProps.className,
+									)}
 									disabled={isPending}
 								>
 									<div className="flex items-center gap-3">
@@ -87,8 +88,11 @@ export function ThingUpdateModal({
 							}))}
 							renderTrigger={(open, val) => (
 								<button
-									{...keyboardModule.register(assignedToIdId)}
-									className="outlined neon lg w-full justify-between font-normal"
+									{...comboboxProps}
+									className={cn(
+										"outlined neon lg w-full justify-between font-normal",
+										comboboxProps.className,
+									)}
 									disabled={isPending}
 								>
 									<div className="flex items-center gap-3">
@@ -112,21 +116,21 @@ export function ThingUpdateModal({
 					</FormField>
 				</div>
 
-				{mutation.isError && (
-					<button
-						type="button"
-						onClick={handleRetry}
-						className="unset rounded-md bg-rose-500/10 px-5 py-2 text-center text-sm font-semibold text-red-600 hover:bg-rose-500/5"
-					>
-						{t("retry.update")}
-					</button>
-				)}
-
 				<div className="grid grid-cols-3 items-center gap-2">
-					<button type="reset" className="ghost col-span-1" disabled={isPending}>
+					<button
+						type="reset"
+						{...cancelProps}
+						className={cn("ghost col-span-1", cancelProps.className)}
+						disabled={isPending}
+					>
 						{t("form.cancel")}
 					</button>
-					<button type="submit" className="col-span-2" disabled={isPending}>
+					<button
+						type="submit"
+						{...submitProps}
+						className={cn("col-span-2", submitProps.className)}
+						disabled={isPending}
+					>
 						{t("form.submit")}
 					</button>
 				</div>

@@ -11,7 +11,7 @@ export function PageContent({
 	return (
 		<div
 			className={cn(
-				"mx-auto flex w-full max-w-7xl flex-col gap-4 px-4 py-4 md:gap-6 md:py-6 lg:px-6",
+				"mx-auto flex w-full max-w-7xl flex-col gap-4 py-4 md:gap-6 md:py-6",
 				className,
 			)}
 			{...rest}

@@ -16,7 +16,6 @@ export function ThingCard({ thing, className, ...rest }: ThingCardProps) {
 		<div
 			className={cn(
 				"card hover:border-primary border-card relative flex min-h-18 cursor-grab flex-col gap-3 p-3 transition-all active:cursor-grabbing",
-				"data-[focus=true]:ring-primary ring ring-transparent",
 				thing._placeholder === true ? "opacity-30" : "animate_down",
 				className,
 			)}

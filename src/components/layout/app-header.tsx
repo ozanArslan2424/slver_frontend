@@ -19,11 +19,11 @@ export function AppHeader() {
 		authModule.logoutMutation.mutate();
 	}
 
-	function handleTheme() {
+	function handleToggleTheme() {
 		setTheme(resolvedTheme === "dark" ? "light" : "dark");
 	}
 
-	function handleLanguage() {
+	function handleToggleLanguage() {
 		i18n.changeLanguage(i18n.language === "en" ? "tr" : "en");
 	}
 
@@ -31,13 +31,18 @@ export function AppHeader() {
 	const iconClassName = "size-4";
 
 	return (
-		<header className="bg-background sticky top-0 z-50 flex h-10 shrink-0 items-center justify-between border-y">
+		<header className="bg-background sticky top-0 z-50 flex h-10 max-w-[100vw] shrink-0 items-center justify-between border-y">
 			<div className="flex items-center px-4 lg:px-12">
 				<h1 className="text-lg font-bold">{t("app")}</h1>
 			</div>
 			<div className="flex items-center px-4 lg:px-12">
 				{isMounted ? (
-					<button type="button" className={buttonClassName} onClick={handleTheme}>
+					<button
+						type="button"
+						className={buttonClassName}
+						onClick={handleToggleTheme}
+						tabIndex={-1}
+					>
 						{resolvedTheme === "dark" ? (
 							<SunIcon className={iconClassName} />
 						) : (
@@ -69,7 +74,7 @@ export function AppHeader() {
 						}
 					>
 						<DropdownMenuContent align="end">
-							<DropdownMenuItem className="capitalize" onClick={handleLanguage}>
+							<DropdownMenuItem className="capitalize" onClick={handleToggleLanguage}>
 								{t("language")}
 							</DropdownMenuItem>
 							<DropdownMenuItem className="capitalize" onClick={handleLogout}>

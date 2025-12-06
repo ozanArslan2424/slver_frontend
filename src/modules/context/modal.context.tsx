@@ -1,16 +1,31 @@
-import {
-	createContext,
-	use,
-	useState,
-	type Dispatch,
-	type PropsWithChildren,
-	type SetStateAction,
-} from "react";
+import { useRangeContext } from "@/modules/context/range.context";
+import { createContext, use, useCallback, useState, type PropsWithChildren } from "react";
 
-const ModalContext = createContext<{
-	modal: string | null;
-	setModal: Dispatch<SetStateAction<string | null>>;
-} | null>(null);
+function useModalHook() {
+	const { setRange } = useRangeContext();
+	const [modal, setModalState] = useState<string | null>(null);
+
+	const setModal = useCallback(
+		(value: string | null) => {
+			console.log(`setModal called with ${value}`);
+			setModalState(value);
+
+			requestAnimationFrame(() => {
+				if (value === null) {
+					setRange(null);
+				} else {
+					const modalRange = document.getElementById(value);
+					setRange(modalRange);
+				}
+			});
+		},
+		[setRange],
+	);
+
+	return { modal, setModal };
+}
+
+const ModalContext = createContext<ReturnType<typeof useModalHook> | null>(null);
 
 export function useModalContext() {
 	const context = use(ModalContext);
@@ -19,6 +34,6 @@ export function useModalContext() {
 }
 
 export function ModalContextProvider({ children }: PropsWithChildren) {
-	const [modal, setModal] = useState<string | null>(null);
-	return <ModalContext value={{ modal, setModal }}>{children}</ModalContext>;
+	const value = useModalHook();
+	return <ModalContext value={value}>{children}</ModalContext>;
 }

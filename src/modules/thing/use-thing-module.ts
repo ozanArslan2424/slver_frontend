@@ -1,76 +1,42 @@
 import { useModal } from "@/hooks/use-modal";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { useRef } from "react";
-import { ThingCreateSchema, type ThingData } from "@/modules/thing/thing.schema";
-import { useLanguage } from "@/modules/language/use-language";
+import {
+	ThingCreateSchema,
+	type ThingAssignData,
+	type ThingData,
+} from "@/modules/thing/thing.schema";
 import { useForm } from "@/hooks/use-form";
-import { useActionDialog } from "@/hooks/use-action-dialog";
 import { useAppContext } from "@/modules/context/app.context";
 import { useModalContext } from "@/modules/context/modal.context";
+import { Help } from "@/lib/help.namespace";
 
 export type UseThingModuleReturn = ReturnType<typeof useThingModule>;
 
 export function useThingModule() {
 	const { setModal } = useModalContext();
 	const { thing } = useAppContext();
-	const { t } = useLanguage("thing");
-
-	const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
 	const listQuery = useQuery(thing.queryList());
 
 	const assignMutation = useMutation(thing.assign(handleReset));
 	const statusMutation = useMutation(thing.done(handleReset));
 	const removeMutation = useMutation(thing.remove(handleReset));
-	const createMutation = useMutation(thing.create(handleReset));
-	const updateMutation = useMutation(thing.update(handleReset));
+	const createMutation = useMutation(
+		thing.create(handleReset, (err) => createForm.setRootError(err.message)),
+	);
+	const updateMutation = useMutation(
+		thing.update(handleReset, (err) => updateForm.setRootError(err.message)),
+	);
 
 	const updateModal = useModal();
 	const detailModal = useModal();
 	const assignModal = useModal();
 	const removeModal = useModal();
-	const menuModal = useActionDialog({
-		actions: [
-			{
-				key: "detail",
-				label: t("detail.label"),
-				onSelect: () => detailOpenAction(),
-			},
-			...(thing.active?.isDone
-				? [
-						{
-							key: "not-done",
-							label: t("notDone.label"),
-							onSelect: () => statusAction(),
-						},
-					]
-				: [
-						{
-							key: "done",
-							label: t("done.label"),
-							onSelect: () => statusAction(),
-						},
-						{
-							key: "update",
-							label: t("update.label"),
-							onSelect: () => updateAction(),
-						},
-						{
-							key: "assign",
-							label: t("assign.label"),
-							onSelect: () => assignAction(),
-						},
-					]),
-			{
-				key: "remove",
-				label: t("remove.label"),
-				onSelect: () => removeAction(),
-			},
-		],
-	});
+	const menuModal = useModal();
 
 	const createForm = useForm({
 		schema: ThingCreateSchema,
+		mutation: createMutation,
 		onSubmit: ({ values }) => {
 			createMutation.mutate(values);
 		},
@@ -78,79 +44,66 @@ export function useThingModule() {
 
 	const updateForm = useForm({
 		schema: ThingCreateSchema,
+		mutation: updateMutation,
 		defaultValues: {
 			content: thing.active?.content,
 			dueDate: thing.active?.dueDate,
 			assignedToId: thing.active?.assignedToId ?? undefined,
 		},
-		onSubmit: ({ values, defaultValues }) => {
-			if (thing.active) {
-				const isUpdated =
-					values.content !== defaultValues?.content ||
-					values.dueDate !== defaultValues?.dueDate ||
-					values.assignedToId !== defaultValues?.assignedToId;
-
-				if (isUpdated) {
-					updateMutation.mutate({ thingId: thing.active.id, ...values });
-				} else {
-					handleReset();
-				}
-			} else {
-				createMutation.mutate(values);
-			}
+		onSubmit: ({ values }) => {
+			Help.assert(thing.active?.id, "thing.active.id is not defined");
+			updateMutation.mutate({ thingId: thing.active.id, ...values });
 		},
-		onReset: () => {
-			thing.setActive(null);
-			updateModal.onOpenChange(false);
-		},
+		onReset: handleReset,
 	});
 
-	function menuAction(entity?: ThingData) {
+	function handleOpenMenuModal(id: ThingData["id"]) {
+		const entity = thing.find(id);
 		if (entity) thing.setActive(entity);
 		menuModal.onOpenChange(true);
 	}
 
-	function detailOpenAction(entity?: ThingData) {
+	function handleOpenDetailModal(id: ThingData["id"]) {
+		const entity = thing.find(id);
 		if (entity) thing.setActive(entity);
 		detailModal.onOpenChange(true);
 	}
 
-	function detailCloseAction() {
-		detailModal.onOpenChange(false);
-	}
-
-	function updateAction(entity?: ThingData) {
+	function handleOpenUpdateModal(id: ThingData["id"]) {
+		const entity = thing.find(id);
 		if (entity) thing.setActive(entity);
 		updateModal.onOpenChange(true);
 	}
 
-	function removeAction(entity?: ThingData) {
+	function handleOpenRemoveModal(id: ThingData["id"]) {
+		const entity = thing.find(id);
 		if (entity) thing.setActive(entity);
 		removeModal.onOpenChange(true);
 	}
 
-	function assignAction(entity?: ThingData) {
+	function handleOpenAssignModal(id: ThingData["id"]) {
+		const entity = thing.find(id);
 		if (entity) thing.setActive(entity);
 		assignModal.onOpenChange(true);
 	}
 
-	function statusAction(entity?: ThingData, value?: boolean) {
-		const active = thing.active ?? entity;
+	function handleUpdateStatus(id?: ThingData["id"], value?: boolean) {
+		const active = id ? thing.find(id) : thing.active;
 		if (!active) return;
 		const thingId = active.id;
 		const isDone = value !== undefined ? value : !active.isDone;
 		statusMutation.mutate({ thingId, isDone });
 	}
 
-	function removeConfirmAction(entity?: ThingData) {
-		const active = thing.active ?? entity;
+	function handleRemove(id?: ThingData["id"]) {
+		const active = id ? thing.find(id) : thing.active;
 		if (!active) return;
 		const thingId = active.id;
 		removeMutation.mutate({ thingId });
 	}
 
-	function removeCancelAction() {
-		removeModal.onOpenChange(false);
+	function handleAssign(value: ThingAssignData) {
+		assignMutation.mutate(value);
 	}
 
 	function handleReset() {
@@ -169,18 +122,10 @@ export function useThingModule() {
 		}
 	}
 
-	const formAction = () => textareaRef.current?.focus();
-
 	return {
 		find: thing.find,
 		active: thing.active,
 		listQuery,
-		textareaRef,
-		createMutation,
-		updateMutation,
-		assignMutation,
-		statusMutation,
-		removeMutation,
 		createForm,
 		updateForm,
 		menuModal,
@@ -189,15 +134,13 @@ export function useThingModule() {
 		removeModal,
 		assignModal,
 		handleSortByDate,
-		menuAction,
-		detailOpenAction,
-		detailCloseAction,
-		updateAction,
-		assignAction,
-		removeAction,
-		statusAction,
-		removeConfirmAction,
-		removeCancelAction,
-		formAction,
+		handleOpenMenuModal,
+		handleOpenDetailModal,
+		handleOpenUpdateModal,
+		handleOpenAssignModal,
+		handleOpenRemoveModal,
+		handleUpdateStatus,
+		handleRemove,
+		handleAssign,
 	};
 }

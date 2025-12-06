@@ -8,7 +8,7 @@ type FormFieldProps<F> = {
 	name: keyof F extends string ? keyof F : never;
 	label?: string;
 	tooltip?: string;
-	form: UseFormReturn<F>;
+	form: UseFormReturn<F, any, any, any>;
 	children: ReactElement<
 		{ id: string; name: string; defaultValue?: string | undefined },
 		React.FunctionComponent

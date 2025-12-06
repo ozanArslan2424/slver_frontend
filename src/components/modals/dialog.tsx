@@ -30,7 +30,7 @@ export function Dialog({
 	id,
 	open,
 	onOpenChange,
-	showCloseButton = true,
+	showCloseButton = false,
 	showTitle = false,
 	showDescription = false,
 	title,
@@ -47,6 +47,7 @@ export function Dialog({
 		<Root data-slot="dialog" open={open} onOpenChange={onOpenChange}>
 			<Portal data-slot="dialog-portal">
 				<Overlay
+					tabIndex={-1}
 					data-slot="dialog-overlay"
 					className="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/50"
 				/>
@@ -84,7 +85,8 @@ export function Dialog({
 						</Description>
 					</div>
 
-					{children}
+					<div>{children}</div>
+
 					{showCloseButton && (
 						<Close asChild>
 							<button

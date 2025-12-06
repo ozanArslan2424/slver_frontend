@@ -8,41 +8,39 @@ export type UsePersonModuleReturn = ReturnType<typeof usePersonModule>;
 
 export function usePersonModule() {
 	const { setModal } = useModalContext();
-	const { person, thing, group } = useAppContext();
+	const { person, group } = useAppContext();
 
 	const listQuery = useQuery(group.queryPersonList());
 
-	const assignMutation = useMutation(thing.assign(handleReset));
 	const removeMutation = useMutation(group.remove(handleReset));
 
 	const menuModal = useModal();
 	const assignModal = useModal();
 	const removeModal = useModal();
 
-	function menuAction(entity?: PersonData) {
+	function handleOpenMenuModal(id: PersonData["id"]) {
+		const entity = person.find(id);
 		if (entity) person.setActive(entity);
 		menuModal.onOpenChange(true);
 	}
 
-	function removeAction(entity?: PersonData) {
+	function handleOpenRemoveModal(id: PersonData["id"]) {
+		const entity = person.find(id);
 		if (entity) person.setActive(entity);
 		removeModal.onOpenChange(true);
 	}
 
-	function assignAction(entity?: PersonData) {
+	function handleOpenAssignModal(id: PersonData["id"]) {
+		const entity = person.find(id);
 		if (entity) person.setActive(entity);
-		menuModal.onOpenChange(true);
+		assignModal.onOpenChange(true);
 	}
 
-	function removeConfirmAction(entity?: PersonData) {
-		const active = person.active ?? entity;
+	function handleRemove(id?: PersonData["id"]) {
+		const active = id ? person.find(id) : person.active;
 		if (!active) return;
 		const personId = active.id;
 		removeMutation.mutate({ personId });
-	}
-
-	function removeCancelAction() {
-		removeModal.onOpenChange(false);
 	}
 
 	function handleReset() {
@@ -53,14 +51,12 @@ export function usePersonModule() {
 	return {
 		active: person.active,
 		listQuery,
-		assignMutation,
 		menuModal,
 		assignModal,
 		removeModal,
-		menuAction,
-		removeAction,
-		removeConfirmAction,
-		removeCancelAction,
-		assignAction,
+		handleOpenMenuModal,
+		handleOpenRemoveModal,
+		handleRemove,
+		handleOpenAssignModal,
 	};
 }

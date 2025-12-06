@@ -11,8 +11,8 @@ type PersonMenuModalProps = {
 export function PersonMenuModal({ personModule, authModule }: PersonMenuModalProps) {
 	const { t } = useLanguage("person");
 	const modal = personModule.menuModal;
-	const assignAction = personModule.assignAction;
-	const removeAction = personModule.removeAction;
+	const handleOpenAssignModal = personModule.handleOpenAssignModal;
+	const handleOpenRemoveModal = personModule.handleOpenRemoveModal;
 	const person = personModule.active;
 	const meQuery = authModule.meQuery;
 
@@ -28,11 +28,13 @@ export function PersonMenuModal({ personModule, authModule }: PersonMenuModalPro
 	// 				: [{ key: "remove", label: t("remove.label"), onSelect: () => removeAction() }]),
 	// 		],
 	// 	}
+
+	if (!person) return null;
 	return (
 		<Popover {...modal}>
-			<button onClick={() => assignAction()}>{t("assign.label")}</button>
+			<button onClick={() => handleOpenAssignModal(person.id)}>{t("assign.label")}</button>
 			{person?.id !== meQuery.data?.id && (
-				<button onClick={() => removeAction()}>{t("remove.label")}</button>
+				<button onClick={() => handleOpenRemoveModal(person.id)}>{t("remove.label")}</button>
 			)}
 		</Popover>
 	);

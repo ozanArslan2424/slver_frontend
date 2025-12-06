@@ -1,19 +1,13 @@
-import {
-	createContext,
-	use,
-	useState,
-	type Dispatch,
-	type PropsWithChildren,
-	type SetStateAction,
-} from "react";
+import { createContext, use, useState, type PropsWithChildren } from "react";
 import type { SlimMode } from "@/modules/keyboard/keyboard.schema";
 
-const ModeContext = createContext<{
-	mode: SlimMode;
-	setMode: Dispatch<SetStateAction<SlimMode>>;
-	keys: string[];
-	setKeys: Dispatch<SetStateAction<string[]>>;
-} | null>(null);
+function useModeHook() {
+	const [mode, setMode] = useState<SlimMode>("normal");
+	const [keys, setKeys] = useState<string[]>([]);
+	return { mode, setMode, keys, setKeys };
+}
+
+const ModeContext = createContext<ReturnType<typeof useModeHook> | null>(null);
 
 export function useModeContext() {
 	const context = use(ModeContext);
@@ -22,7 +16,6 @@ export function useModeContext() {
 }
 
 export function ModeContextProvider({ children }: PropsWithChildren) {
-	const [mode, setMode] = useState<SlimMode>("normal");
-	const [keys, setKeys] = useState<string[]>([]);
-	return <ModeContext value={{ mode, setMode, keys, setKeys }}>{children}</ModeContext>;
+	const value = useModeHook();
+	return <ModeContext value={value}>{children}</ModeContext>;
 }

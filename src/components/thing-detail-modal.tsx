@@ -1,16 +1,16 @@
 import { Dialog } from "@/components/modals/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { PersonAvatar } from "@/components/ui/person-avatar";
-import { cn, prefixId } from "@/lib/utils";
-import type { UseKeyboardModuleReturn } from "@/modules/keyboard/use-keyboard-module";
+import { cn } from "@/lib/utils";
 import { useLanguage } from "@/modules/language/use-language";
 import type { UseThingModuleReturn } from "@/modules/thing/use-thing-module";
 import { CalendarCogIcon, CheckIcon } from "lucide-react";
-import type { ReactNode } from "react";
+import type { ComponentProps, ReactNode } from "react";
 
 type ThingDetailModalProps = {
 	thingModule: UseThingModuleReturn;
-	keyboardModule: UseKeyboardModuleReturn;
+	updateProps: ComponentProps<"button">;
+	removeProps: ComponentProps<"button">;
 };
 
 function ThingInfoLine({
@@ -38,15 +38,13 @@ function ThingInfoLine({
 	);
 }
 
-export function ThingDetailModal({ thingModule, keyboardModule }: ThingDetailModalProps) {
+export function ThingDetailModal({ thingModule, updateProps, removeProps }: ThingDetailModalProps) {
 	const { t, timestamp } = useLanguage("thing");
 
 	const thing = thingModule.active;
-	const updateAction = thingModule.updateAction;
-	const removeAction = thingModule.removeAction;
+	const handleOpenUpdateModal = thingModule.handleOpenUpdateModal;
+	const handleOpenRemoveModal = thingModule.handleOpenRemoveModal;
 	const modal = thingModule.detailModal;
-	const updateButtonId = prefixId("update", "thing_detail");
-	const removeButtonId = prefixId("remove", "thing_detail");
 
 	const iconSize = "size-5";
 
@@ -109,23 +107,17 @@ export function ThingDetailModal({ thingModule, keyboardModule }: ThingDetailMod
 				<div className="flex items-center gap-3">
 					{!thing.isDone && (
 						<button
-							onClick={() => updateAction(thing)}
-							className={cn(
-								"outlined h-9 w-full rounded-lg",
-								"data-[focus=true]:ring-primary ring ring-transparent",
-							)}
-							{...keyboardModule.register(updateButtonId)}
+							onClick={() => handleOpenUpdateModal(thing.id)}
+							{...updateProps}
+							className={cn("outlined h-9 w-full rounded-lg", updateProps.className)}
 						>
 							{t("update.label")}
 						</button>
 					)}
 					<button
-						onClick={() => removeAction(thing)}
-						className={cn(
-							"outlined h-9 w-full rounded-lg",
-							"data-[focus=true]:ring-primary ring ring-transparent",
-						)}
-						{...keyboardModule.register(removeButtonId)}
+						onClick={() => handleOpenRemoveModal(thing.id)}
+						{...removeProps}
+						className={cn("outlined h-9 w-full rounded-lg", removeProps.className)}
 					>
 						{t("remove.label")}
 					</button>

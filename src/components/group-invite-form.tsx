@@ -1,39 +1,38 @@
 import { Checkbox } from "@/components/form/checkbox";
 import { FormField } from "@/components/form/form-field";
 import { FormRootError } from "@/components/form/form-root-error";
-import { cn, prefixId } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import type { UseGroupModuleReturn } from "@/modules/group/use-group-module";
-import type { UseKeyboardModuleReturn } from "@/modules/keyboard/use-keyboard-module";
 import { useLanguage } from "@/modules/language/use-language";
 import { Loader2Icon, ShieldUserIcon } from "lucide-react";
+import type { ComponentProps } from "react";
 
 type GroupFormProps = {
 	groupModule: UseGroupModuleReturn;
-	keyboardModule: UseKeyboardModuleReturn;
+	inputProps: ComponentProps<"input">;
+	checkboxProps: ComponentProps<typeof Checkbox>;
+	submitProps: ComponentProps<"button">;
 };
 
-export function GroupInviteForm({ groupModule, keyboardModule }: GroupFormProps) {
+export function GroupInviteForm({
+	groupModule,
+	inputProps,
+	checkboxProps,
+	submitProps,
+}: GroupFormProps) {
 	const { t } = useLanguage("group");
-	const id = prefixId("invite", "group");
 	const form = groupModule.inviteForm;
-	const inputRef = groupModule.inviteInputRef;
 
 	return (
-		<div
-			className={cn(
-				"flex h-max flex-1 flex-col gap-3 rounded-md transition-all",
-				"data-[focus=true]:ring-primary ring ring-transparent",
-			)}
-			{...keyboardModule.register(id)}
-		>
+		<div className="flex h-max flex-1 flex-col gap-3 rounded-md transition-all">
 			<form {...form.methods} className="flex flex-col gap-2">
 				<div className="flex gap-2">
 					<FormField form={form} name="email" id="email">
 						<input
 							required
-							ref={inputRef}
-							className="bg-card border-card"
 							placeholder={t("form.fields.email.label")}
+							{...inputProps}
+							className={cn("bg-card border-card", inputProps.className)}
 						/>
 					</FormField>
 					<FormField
@@ -44,7 +43,8 @@ export function GroupInviteForm({ groupModule, keyboardModule }: GroupFormProps)
 						tooltip={t("form.fields.role.label")}
 					>
 						<Checkbox
-							className="size-10 border-transparent"
+							{...checkboxProps}
+							className={cn("size-10 border-transparent", checkboxProps.className)}
 							renderChildren={() => <ShieldUserIcon className={cn("size-5")} />}
 						/>
 					</FormField>
@@ -52,7 +52,11 @@ export function GroupInviteForm({ groupModule, keyboardModule }: GroupFormProps)
 
 				<FormRootError form={form} />
 
-				<button type="submit" className="soft h-10 w-full border-transparent">
+				<button
+					type="submit"
+					{...submitProps}
+					className={cn("soft h-10 w-full border-transparent", submitProps.className)}
+				>
 					{form.isPending ? <Loader2Icon className="animate-spin" /> : t("form.invite")}
 				</button>
 			</form>
