@@ -22,6 +22,7 @@ function makeContext() {
 	});
 	const request = new RequestModule(store, {
 		baseURL: `${import.meta.env.VITE_API_URL || "http://localhost:3000"}/api`,
+		withCredentials: true,
 		refreshEndpoint: apiRoutes.auth.refresh,
 		beforeRequest: (config) => {
 			const groupId = store.get("groupId");

@@ -19,9 +19,9 @@ export class StoreModule<Schema extends Record<string, any>> {
 		return this._data.get(key);
 	}
 
-	getWithDefault<K extends keyof Schema>(key: K, defaultValue: Schema[K]): Schema[K];
-	getWithDefault<T>(key: string, defaultValue: T): T;
-	getWithDefault(key: string, defaultValue: any): any {
+	getOrDefault<K extends keyof Schema>(key: K, defaultValue: Schema[K]): Schema[K];
+	getOrDefault<T>(key: string, defaultValue: T): T;
+	getOrDefault(key: string, defaultValue: any): any {
 		const value = this._data.get(key);
 		return value !== undefined ? value : defaultValue;
 	}
