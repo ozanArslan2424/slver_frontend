@@ -10,8 +10,8 @@ export class RequestModule implements RequestInterface {
 	private isRefreshing = false;
 	private failedQueue: ((token: string) => void)[] = [];
 	private instance: AxiosInstance;
-
 	private baseURL: string;
+	private withCredentials: boolean;
 	private refreshEndpoint: string;
 	private beforeRequest?: (config: InternalAxiosRequestConfig) => void;
 
@@ -20,6 +20,7 @@ export class RequestModule implements RequestInterface {
 		readonly config: RequestConfig,
 	) {
 		this.baseURL = config.baseURL;
+		this.withCredentials = config.withCredentials;
 		this.refreshEndpoint = config.refreshEndpoint;
 		this.beforeRequest = config.beforeRequest;
 		this.instance = this.createInstance();
@@ -49,7 +50,7 @@ export class RequestModule implements RequestInterface {
 		return axiosDefault.create({
 			baseURL: this.baseURL,
 			timeout: 10000,
-			withCredentials: true,
+			withCredentials: this.withCredentials,
 			paramsSerializer: (params) =>
 				qs.stringify(params, {
 					filter: (_, value) => (value ? value : undefined),

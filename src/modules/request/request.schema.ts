@@ -12,6 +12,7 @@ export interface RequestInterface {
 
 export type RequestConfig = {
 	baseURL: string;
+	withCredentials: boolean;
 	refreshEndpoint: string;
 	beforeRequest?: (config: InternalAxiosRequestConfig) => void | Promise<void>;
 };
