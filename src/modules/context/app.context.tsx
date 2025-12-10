@@ -9,6 +9,8 @@ import { StoreModule } from "@/modules/store/store.module";
 import type { StoreData } from "@/modules/store/store.schema";
 import { apiRoutes } from "@/api.routes";
 import i18n from "@/modules/language/language.config";
+import { createContext, use, type PropsWithChildren } from "react";
+import { QueryClientProvider } from "@tanstack/react-query";
 
 const groupIdHeader = "x-group-id";
 const languageHeader = "x-lang";
@@ -46,9 +48,20 @@ function makeContext() {
 	};
 }
 
-let context: ReturnType<typeof makeContext>;
+const context = makeContext();
 
-export function getContext() {
-	if (!context) context = makeContext();
-	return context;
+const AppContext = createContext<typeof context>(context);
+
+export function useAppContext() {
+	const value = use(AppContext);
+	if (!value) throw new Error("AppContext requires a provider.");
+	return value;
+}
+
+export function AppContextProvider({ children }: PropsWithChildren) {
+	return (
+		<QueryClientProvider client={context.query}>
+			<AppContext value={context}>{children}</AppContext>
+		</QueryClientProvider>
+	);
 }

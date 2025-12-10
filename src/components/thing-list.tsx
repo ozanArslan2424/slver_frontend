@@ -2,21 +2,21 @@ import { Skeleton } from "@/components/ui/skeleton";
 import type { UseDndReturn } from "@/hooks/use-dnd";
 import { repeat, prefixId, cn } from "@/lib/utils";
 import { ErrorCard } from "@/components/ui/error-card";
-import type { UseKeyboardModuleReturn } from "@/modules/keyboard/use-keyboard-module";
 import type { UseThingModuleReturn } from "@/modules/thing/use-thing-module";
 import { ThingCard } from "@/components/thing-card";
+import type { ThingData } from "@/modules/thing/thing.schema";
+import type { ComponentProps } from "react";
 
 type ThingListProps = {
 	thingModule: UseThingModuleReturn;
-	keyboardModule: UseKeyboardModuleReturn;
 	dnd: UseDndReturn;
 	variant: "done" | "notDone";
+	cardProps: (thing: ThingData) => ComponentProps<"div">;
 };
 
-export function ThingList({ thingModule, keyboardModule, dnd, variant }: ThingListProps) {
+export function ThingList({ thingModule, cardProps, dnd, variant }: ThingListProps) {
 	const listQuery = thingModule.listQuery;
-	const handleSortByDate = thingModule.handleSortByDate;
-	const handleClick = thingModule.handleDetailClick;
+	const handleOpenDetailModal = thingModule.handleOpenDetailModal;
 
 	if (listQuery.isPending) {
 		return (
@@ -38,25 +38,25 @@ export function ThingList({ thingModule, keyboardModule, dnd, variant }: ThingLi
 	return (
 		<div className="flex flex-col gap-3">
 			{listQuery.data
-				.sort((a, b) => handleSortByDate(a, b, variant))
 				.filter((t) => (variant === "done" ? t.isDone : !t.isDone))
+				// .sort(thingModule.handleSortByDate)
 				.map((thing, index) => {
 					const id = prefixId(thing.id, "thing");
 					const delay = index * 100;
+					const props = cardProps(thing);
 					return (
 						<ThingCard
 							key={id}
 							thing={thing}
-							{...keyboardModule.getElementProps(id)}
+							{...props}
 							{...dnd.registerSource({ sourceId: id })}
 							{...dnd.registerTarget({ targetId: id })}
 							className={cn(
-								"hover:border-primary",
 								variant === "done" && "opacity-70 hover:opacity-100",
-								keyboardModule.getIsFocused(id) && "outline-ring",
 								dnd.getIsOver(id) && "border-primary",
+								props.className,
 							)}
-							onClick={() => handleClick(thing)}
+							onClick={() => handleOpenDetailModal(thing.id)}
 							style={{ animationDelay: `${delay}ms` }}
 						/>
 					);

@@ -5,6 +5,11 @@ import LanguageDetector from "i18next-browser-languagedetector";
 import en from "./en";
 import tr from "./tr";
 
+export const locales = {
+	en,
+	tr,
+};
+
 i18n
 	.use(LanguageDetector)
 	.use(initReactI18next)
@@ -13,10 +18,7 @@ i18n
 		interpolation: {
 			escapeValue: false,
 		},
-		resources: {
-			en,
-			tr,
-		},
+		resources: locales,
 		detection: {
 			order: ["localStorage", "navigator", "htmlTag"],
 			caches: ["localStorage"],

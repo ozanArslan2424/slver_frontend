@@ -1,55 +1,58 @@
 import { DatePicker } from "@/components/form/date-picker";
 import { FormField } from "@/components/form/form-field";
-import { cn, prefixId } from "@/lib/utils";
-import type { UseKeyboardModuleReturn } from "@/modules/keyboard/use-keyboard-module";
+import { cn } from "@/lib/utils";
+import { useLanguage } from "@/modules/language/use-language";
 import type { UseThingModuleReturn } from "@/modules/thing/use-thing-module";
 import { CalendarPlusIcon } from "lucide-react";
+import type { ComponentProps } from "react";
 
 type ThingFormProps = {
 	thingModule: UseThingModuleReturn;
-	keyboardModule: UseKeyboardModuleReturn;
+	textareaProps: ComponentProps<"textarea">;
+	datePickerProps: ComponentProps<"button">;
+	submitProps: ComponentProps<"button">;
 };
 
-export function ThingForm({ thingModule, keyboardModule }: ThingFormProps) {
-	const id = prefixId("form", "thing");
+export function ThingForm({
+	thingModule,
+	textareaProps,
+	datePickerProps,
+	submitProps,
+}: ThingFormProps) {
+	const { t } = useLanguage("thing");
+	const form = thingModule.createForm;
 
 	return (
-		<div
-			className={cn(
-				"flex h-max flex-1 flex-col gap-3 rounded-md outline-2 outline-offset-2 outline-transparent transition-all",
-				keyboardModule.getIsFocused(id) && "outline-ring",
-			)}
-			{...keyboardModule.getElementProps(id)}
-		>
-			<form {...thingModule.createForm.methods} className="flex flex-col gap-2">
-				<FormField form={thingModule.createForm} name="content" id="content">
+		<div className="flex h-max flex-1 flex-col gap-3 rounded-md transition-all">
+			<form {...form.methods} className="flex flex-col gap-2">
+				<FormField form={form} name="content" id="content">
 					<textarea
-						placeholder={thingModule.t("form.fields.title.label")}
-						title={thingModule.t("form.fields.title.title")}
+						placeholder={t("form.content.label")}
 						required
-						className="bg-card border-card min-h-20"
-						ref={thingModule.textareaRef}
-						disabled={thingModule.createMutation.isPending}
+						disabled={form.isPending}
+						{...textareaProps}
+						className={cn("bg-card border-card min-h-20", textareaProps.className)}
+						spellCheck
 					/>
 				</FormField>
+
 				<div className="flex items-center gap-2">
-					<FormField
-						form={thingModule.createForm}
-						name="dueDate"
-						id="dueDate"
-						className="w-min max-w-min"
-					>
+					<FormField form={form} name="dueDate" id="dueDate" className="w-min max-w-min">
 						<DatePicker
-							placeholder={thingModule.t("form.fields.dueDate.label")}
+							placeholder={t("form.dueDate.label")}
 							startDate={new Date()}
 							endDate={new Date(2040, 0, 1)}
-							renderTrigger={(open) => (
+							renderTrigger={(open, value) => (
 								<button
-									disabled={thingModule.createMutation.isPending}
+									disabled={form.isPending}
 									type="button"
+									{...datePickerProps}
 									className={cn(
 										"square size-10 border-transparent",
-										open ? "primary" : "soft text-foreground/70 hover:text-foreground",
+										open || value !== undefined
+											? "primary"
+											: "soft text-foreground/70 hover:text-foreground",
+										datePickerProps.className,
 									)}
 								>
 									<CalendarPlusIcon className="size-5" />
@@ -59,10 +62,11 @@ export function ThingForm({ thingModule, keyboardModule }: ThingFormProps) {
 					</FormField>
 					<button
 						type="submit"
-						className="soft h-10 w-full flex-1 border-transparent"
-						disabled={thingModule.createMutation.isPending}
+						disabled={form.isPending}
+						{...submitProps}
+						className={cn("soft h-10 w-full flex-1 border-transparent", submitProps.className)}
 					>
-						{thingModule.t("form.submit")}
+						{t("form.submit")}
 					</button>
 				</div>
 			</form>

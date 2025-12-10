@@ -1,3 +1,4 @@
+import type { DefaultError, UseMutationResult } from "@tanstack/react-query";
 import { useCallback, useRef, useState, useTransition } from "react";
 import { z } from "zod/v4";
 
@@ -5,15 +6,19 @@ export type TFormErrors<TFields> = z.core.$ZodFlattenedError<TFields, string>["f
 	_root: string[];
 };
 
-type UseFormArgs<T> = {
+export type UseFormArgs<T, V = void, R = unknown, TOnMutateResult = unknown> = {
 	schema: z.ZodType<T>;
-	onSubmit: (values: T, formData: FormData) => void | Promise<void>;
+	onSubmit: (submitData: {
+		values: T;
+		formData: FormData;
+		defaultValues?: Partial<T>;
+	}) => void | Promise<void>;
 	onReset?: () => void;
 	defaultValues?: Partial<T>;
+	mutation?: UseMutationResult<R, DefaultError, V, TOnMutateResult>;
 };
 
-export type UseFormReturn<T> = {
-	isPending: boolean;
+export type UseFormReturn<T, V = void, R = unknown, TOnMutateResult = unknown> = {
 	methods: {
 		onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
 		onReset: () => void;
@@ -24,11 +29,15 @@ export type UseFormReturn<T> = {
 	errors: TFormErrors<T>;
 	setRootError: (rootError: string | Array<string>) => void;
 	reset: () => void;
+	isPending: boolean;
+	mutation?: UseMutationResult<R, DefaultError, V, TOnMutateResult>;
 };
 
 const emptyErrors: TFormErrors<unknown> = { _root: [] };
 
-export function useForm<T>(args: UseFormArgs<T>): UseFormReturn<T> {
+export function useForm<T, V = void, R = unknown, TOnMutateResult = unknown>(
+	args: UseFormArgs<T, V, R, TOnMutateResult>,
+): UseFormReturn<T, V, R, TOnMutateResult> {
 	const [isPending, startPending] = useTransition();
 	const [errors, setErrors] = useState<TFormErrors<T>>(emptyErrors);
 	const ref = useRef<HTMLFormElement>(null);
@@ -62,7 +71,12 @@ export function useForm<T>(args: UseFormArgs<T>): UseFormReturn<T> {
 					return;
 				}
 				setErrors(emptyErrors);
-				args.onSubmit(parseResult.data, formData);
+				const submitData = {
+					values: parseResult.data,
+					defaultValues: args.defaultValues,
+					formData,
+				};
+				args.onSubmit(submitData);
 			});
 		},
 		[args],
@@ -87,11 +101,12 @@ export function useForm<T>(args: UseFormArgs<T>): UseFormReturn<T> {
 	}, []);
 
 	return {
-		isPending,
 		methods: { onSubmit, onReset, ref, noValidate: true },
 		errors,
 		defaultValues: args.defaultValues,
 		reset,
 		setRootError,
+		mutation: args.mutation,
+		isPending: args.mutation ? args.mutation.isPending : isPending,
 	};
 }

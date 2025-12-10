@@ -1,175 +1,225 @@
-import { isValidIndex } from "@/lib/utils";
-import type { KeyboardElement, El, KeyboardElementProps } from "@/modules/keyboard/keyboard.schema";
-import { useModeContext } from "@/modules/keyboard/mode.context";
-import { useRef, useCallback, useEffect } from "react";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { cn, getNextIndex, isObjectWith, isValidIndex, toStringBoolean } from "@/lib/utils";
+import type {
+	SlimElementProps,
+	SlimDispatch,
+	SlimDispatchBase,
+	SlimActions,
+	SlimVisualElement,
+} from "@/modules/keyboard/keyboard.schema";
+import { useModeContext } from "@/modules/context/mode.context";
+import { useEffect } from "react";
+import { TXT } from "@/lib/txt.namespace";
+import { useRangeContext } from "@/modules/context/range.context";
+
+const focusedElementSelector = "[data-visual-item=true][data-focus=true]";
+const visualElementSelector = "*[data-visual-item=true]";
+const inputElementSelector = "input, textarea";
 
 export type UseKeyboardModuleReturn = ReturnType<typeof useKeyboardModule>;
 
-export function useKeyboardModule(els: KeyboardElement[]) {
-	const { currentFocusIndex, setCurrentFocusIndex, mode, setMode, setKeysBuffer } =
-		useModeContext();
+const stringSeparator = "_&_";
 
-	const inputRef = useRef<El | null>(null);
-	const elementRefs = useRef<El[]>([]);
-
-	useEffect(() => {
-		elementRefs.current = elementRefs.current.slice(0, Object.keys(els).length);
-	}, [els]);
-
-	const handleNavigation = useCallback(
-		(e: KeyboardEvent) => {
-			if (isValidIndex(parseInt(e.key), els)) {
-				e.preventDefault();
-				setCurrentFocusIndex(parseInt(e.key));
-				return;
-			}
-
-			if (["ArrowRight", "ArrowDown", "Tab"].includes(e.code)) {
-				e.preventDefault();
-				const totalEls = elementRefs.current.length;
-				setCurrentFocusIndex((currentFocusIndex + 1) % totalEls);
-				return;
-			}
-
-			if (["ArrowLeft", "ArrowUp"].includes(e.code)) {
-				e.preventDefault();
-				const totalEls = elementRefs.current.length;
-				setCurrentFocusIndex((currentFocusIndex - 1 + totalEls) % totalEls);
-				return;
-			}
-		},
-		[els, currentFocusIndex, setCurrentFocusIndex],
-	);
-
-	const handleAction = useCallback(
-		(e: KeyboardEvent) => {
-			const elId = elementRefs.current[currentFocusIndex].id;
-			const el = els.find((el) => el.id === elId);
-			if (!el) return;
-
-			const keyPress = e.key === " " ? "Space" : e.key;
-			const isActionKey = Object.keys(el.keyActions).includes(keyPress);
-			if (!isActionKey) return;
-
-			e.preventDefault();
-			el.keyActions[keyPress](elId);
-		},
-		[els, currentFocusIndex],
-	);
-
-	const handleEscapeKey = useCallback(
-		(e: KeyboardEvent) => {
-			const escapeKeys = ["Escape"];
-			if (mode !== "insert") {
-				escapeKeys.push("KeyQ");
-			}
-			const isEscapeKey = escapeKeys.includes(e.code);
-			if (!isEscapeKey) return;
-			setMode("normal");
-			setKeysBuffer([]);
-			setCurrentFocusIndex(0);
-			if (inputRef.current) {
-				inputRef.current.blur();
-				inputRef.current = null;
-			}
-		},
-		[mode, setMode, setKeysBuffer, setCurrentFocusIndex],
-	);
-
-	const handleKeySequence = useCallback(
-		(e: KeyboardEvent) => {
-			switch (e.code) {
-				case "KeyV":
-					setMode("visual");
-					break;
-				default:
-					break;
-			}
-
-			setKeysBuffer((prev) => [...prev, e.code]);
-		},
-		[setMode, setKeysBuffer],
-	);
-
-	const handleKeyDown = useCallback(
-		(e: KeyboardEvent) => {
-			switch (mode) {
-				case "normal":
-					handleKeySequence(e);
-					break;
-				case "visual":
-					handleKeySequence(e);
-					handleEscapeKey(e);
-					handleNavigation(e);
-					handleAction(e);
-					break;
-				case "action":
-					handleEscapeKey(e);
-					break;
-				case "insert":
-					handleEscapeKey(e);
-					break;
-				default:
-					break;
-			}
-		},
-		[mode, handleNavigation, handleAction, handleEscapeKey, handleKeySequence],
-	);
-
-	const handleFocus = useCallback(
-		(e: Event) => {
-			inputRef.current = e.currentTarget as El;
-			setMode("insert");
-		},
-		[setMode],
-	);
-
-	const handleBlur = useCallback(() => {
-		setMode("normal");
-	}, [setMode]);
+// TODO: When a modal is closed using the mouse, everything should reset
+export function useKeyboardModule<T extends SlimDispatchBase>(dispatch: SlimDispatch<T>) {
+	const isMobile = useIsMobile();
+	const { range } = useRangeContext();
+	const { mode, setMode, setKeys, index, setIndex } = useModeContext();
 
 	useEffect(() => {
-		const inputs = document.querySelectorAll("input, textarea");
+		const getFocusedElement = (): SlimVisualElement | null => {
+			const el = range.querySelector(focusedElementSelector) as HTMLElement | null;
+			if (!el) return null;
 
-		document.addEventListener("keydown", handleKeyDown);
-		inputs.forEach((el) => {
-			el.addEventListener("focus", handleFocus);
-			el.addEventListener("blur", handleBlur);
-		});
-
-		return () => {
-			document.removeEventListener("keydown", handleKeyDown);
-			inputs.forEach((el) => {
-				el.removeEventListener("focus", handleFocus);
-				el.removeEventListener("blur", handleBlur);
+			return Object.assign(el, {
+				activate: () => {
+					if (el instanceof HTMLInputElement) {
+						return el.focus();
+					}
+					if (el instanceof HTMLTextAreaElement) {
+						return el.focus();
+					}
+					return el.click();
+				},
 			});
 		};
-	}, [handleKeyDown, handleFocus, handleBlur]);
 
-	const getElementProps = useCallback(
-		<E extends El>(id: string): KeyboardElementProps<E> => {
-			return {
-				id,
-				tabIndex: -1,
-				ref: (element: E) => {
-					const index = els.findIndex((el) => el.id === id);
-					elementRefs.current[index] = element;
-				},
-			};
-		},
-		[els],
-	);
+		const getVisualElements = (withRange = true): HTMLElement[] | null => {
+			const getFrom = withRange ? range : document;
+			const nodeList = getFrom.querySelectorAll(visualElementSelector);
+			if (nodeList.length === 0) return null;
+			return Array.from(nodeList) as HTMLElement[];
+		};
 
-	const getIsFocused = useCallback(
-		(id: string): boolean => {
-			if (mode !== "visual" && mode !== "action") return false;
-			return currentFocusIndex === els.findIndex((el) => el.id === id);
-		},
-		[els, mode, currentFocusIndex],
-	);
+		const updateFocus = (elements: HTMLElement[], nextIndex?: number) => {
+			for (const element of elements) {
+				element.setAttribute("data-focus", toStringBoolean(false));
+			}
 
-	return {
-		getElementProps,
-		getIsFocused,
+			if (nextIndex === undefined) return;
+
+			const focusedElement = elements[nextIndex];
+			console.log(focusedElement.id);
+			focusedElement.setAttribute("data-focus", toStringBoolean(true));
+			focusedElement.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" });
+		};
+
+		const navigate = (elements: HTMLElement[], to: "next" | "prev" | number) => {
+			setIndex((prevIndex) => {
+				const isNormal = mode === "normal";
+				let nextIndex: number = prevIndex;
+
+				if (isNormal) {
+					setMode("visual");
+				}
+
+				if (to === "next") {
+					nextIndex = isNormal ? prevIndex : getNextIndex(prevIndex + 1, elements);
+				} else if (to === "prev") {
+					nextIndex = isNormal ? prevIndex : getNextIndex(prevIndex - 1, elements);
+				} else {
+					nextIndex = to;
+				}
+
+				updateFocus(elements, nextIndex);
+				return nextIndex;
+			});
+		};
+
+		const act = (e: KeyboardEvent) => {
+			const actionKey = e.key === " " ? "Space" : e.key;
+
+			const focusedElement = getFocusedElement();
+			if (!focusedElement) return;
+
+			const attrValue = focusedElement.getAttribute("data-actions");
+			if (!attrValue) return [];
+
+			const actions = TXT.split(";", attrValue).map((str) => {
+				const [key, fn, payload] = TXT.split(stringSeparator, str, 3);
+				return { key, fn, payload: payload !== "{}" ? JSON.parse(payload) : undefined };
+			});
+
+			if (!actions) return;
+
+			const action = actions.find((a) => a.key === actionKey);
+
+			if (!action) return;
+
+			e.preventDefault();
+			dispatch({ fn: action.fn, payload: action.payload } as T, focusedElement);
+			requestAnimationFrame(() => {
+				const elements = getVisualElements();
+				if (elements) updateFocus(elements, 0);
+			});
+		};
+
+		const reset = () => {
+			setIndex(0);
+			setMode("normal");
+			setKeys([]);
+			requestAnimationFrame(() => {
+				const elements = getVisualElements(false);
+				if (elements) updateFocus(elements);
+			});
+		};
+
+		const documentKeydown = (e: KeyboardEvent) => {
+			if (isMobile) return;
+			if (mode === "insert") return;
+
+			const prevKeys = ["ArrowLeft", "ArrowUp", "Backspace"];
+			const nextKeys = ["ArrowRight", "ArrowDown", "Tab"];
+			const escapeKeys = ["Escape"];
+
+			if (escapeKeys.includes(e.code)) {
+				e.preventDefault();
+				reset();
+				return;
+			}
+
+			const elements = getVisualElements();
+			if (!elements) {
+				setMode("normal");
+				return;
+			}
+
+			setKeys((p) => [...p, e.code]);
+
+			if (isValidIndex(parseInt(e.key), elements)) {
+				e.preventDefault();
+				navigate(elements, parseInt(e.key));
+				return;
+			}
+
+			if (nextKeys.includes(e.code)) {
+				e.preventDefault();
+				navigate(elements, "next");
+				return;
+			}
+
+			if (prevKeys.includes(e.code)) {
+				e.preventDefault();
+				navigate(elements, "prev");
+				return;
+			}
+
+			act(e);
+		};
+
+		const inputKeydown = (e: Event) => {
+			const isKeyDown = isObjectWith<{ code: string }>(e, "code");
+			if (!isKeyDown) return;
+			const escapeKeys = ["Escape"];
+
+			if (escapeKeys.includes(e.code)) {
+				e.preventDefault();
+				const target = e.target as HTMLInputElement | HTMLTextAreaElement;
+				target.blur();
+				reset();
+				return;
+			}
+		};
+
+		const inputFocus = () => {
+			setMode("insert");
+		};
+
+		const inputBlur = () => {
+			setMode("normal");
+		};
+
+		const inputs = Array.from(document.querySelectorAll(inputElementSelector));
+
+		document.addEventListener("keydown", documentKeydown);
+		inputs.forEach((input) => {
+			input.addEventListener("keydown", inputKeydown);
+			input.addEventListener("focus", inputFocus);
+			input.addEventListener("blur", inputBlur);
+		});
+		return () => {
+			document.removeEventListener("keydown", documentKeydown);
+			inputs.forEach((input) => {
+				input.removeEventListener("keydown", inputKeydown);
+				input.removeEventListener("focus", inputFocus);
+				input.removeEventListener("blur", inputBlur);
+			});
+		};
+	}, [mode, index, range, isMobile, setMode, setKeys, dispatch, setIndex]);
+
+	const register = (id: string, actions: SlimActions<T>, className?: string): SlimElementProps => {
+		const entries = Object.entries(actions);
+		const actionsAttr = entries
+			.map(([key, a]) => [key, a.fn, JSON.stringify(a.payload ?? "{}")].join(stringSeparator))
+			.join(";");
+		return {
+			id,
+			tabIndex: -1,
+			className: cn("data-[focus=true]:ring-ring ring-2 ring-transparent", className),
+			"data-visual-item": true,
+			"data-actions": actionsAttr,
+		};
 	};
+
+	return register;
 }

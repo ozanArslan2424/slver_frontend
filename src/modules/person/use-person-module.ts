@@ -1,113 +1,62 @@
-import { useAppContext } from "@/app";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import type { PersonData } from "@/modules/person/person.schema";
-import { useLanguage } from "@/modules/language/use-language";
-import { prefixId } from "@/lib/utils";
-import type { KeyboardElement } from "@/modules/keyboard/keyboard.schema";
-import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
-import { toast } from "sonner";
-import { useActionDialog } from "@/hooks/use-action-dialog";
-import { useCallback } from "react";
+import { useModal } from "@/hooks/use-modal";
+import { useAppContext } from "@/modules/context/app.context";
+import { useModalContext } from "@/modules/context/modal.context";
 
 export type UsePersonModuleReturn = ReturnType<typeof usePersonModule>;
 
 export function usePersonModule() {
-	const { auth, person, thing, group } = useAppContext();
-	const { t } = useLanguage("person");
+	const { setModal } = useModalContext();
+	const { person, group } = useAppContext();
 
-	const meQuery = useQuery(auth.queryMe());
 	const listQuery = useQuery(group.queryPersonList());
 
-	const assignMutation = useMutation(thing.assign(handleReset));
 	const removeMutation = useMutation(group.remove(handleReset));
 
-	const assignDialog = useActionDialog({
-		actions: [],
-		title: t("assign.label"),
-		description: t("assign.label"),
-	});
-	const actionDialog = useActionDialog({
-		actions: [
-			{
-				key: "assign",
-				label: t("assign.label"),
-				onSelect: () => handleAssignClick(),
-			},
-			...(person.active?.id === meQuery.data?.id
-				? []
-				: [
-						{
-							key: "remove",
-							label: t("remove.label"),
-							onSelect: () => handleRemoveClick(),
-						},
-					]),
-		],
-	});
-	const removeDialog = useConfirmDialog({
-		title: t("remove.confirm.title"),
-		description: t("remove.confirm.description"),
-		onConfirm: () => {
-			if (!person.active) {
-				toast.error(t("remove.confirm.error"));
-				return;
-			}
-			removeMutation.mutate({ personId: person.active.id });
-		},
-	});
+	const detailModal = useModal();
+	const assignModal = useModal();
+	const removeModal = useModal();
 
-	const els: KeyboardElement[] = (listQuery.data ?? []).map((p) => ({
-		id: prefixId(p.id, "person"),
-		keyActions: {
-			Enter: () => handleAction(p),
-			x: () => handleRemoveClick(p),
-		},
-	}));
+	function handleOpenDetailModal(id: PersonData["id"]) {
+		const entity = person.find(id);
+		if (entity) person.setActive(entity);
+		detailModal.onOpenChange(true);
+	}
 
-	const handleAction = useCallback(
-		(entity: PersonData) => {
-			person.setActive(entity);
-			actionDialog.onOpenChange(true);
-		},
-		[person, actionDialog],
-	);
+	function handleOpenRemoveModal(id: PersonData["id"]) {
+		const entity = person.find(id);
+		if (entity) person.setActive(entity);
+		removeModal.onOpenChange(true);
+	}
 
-	const handleRemoveClick = useCallback(
-		(entity?: PersonData) => {
-			if (entity) {
-				person.setActive(entity);
-			}
-			removeDialog.onOpenChange(true);
-		},
-		[person, removeDialog],
-	);
+	function handleOpenAssignModal(id: PersonData["id"]) {
+		const entity = person.find(id);
+		if (entity) person.setActive(entity);
+		assignModal.onOpenChange(true);
+	}
 
-	const handleAssignClick = useCallback(
-		(entity?: PersonData) => {
-			if (entity) {
-				person.setActive(entity);
-			}
-			assignDialog.onOpenChange(true);
-		},
-		[person, assignDialog],
-	);
+	function handleRemove(id?: PersonData["id"]) {
+		const active = id ? person.find(id) : person.active;
+		if (!active) return;
+		const personId = active.id;
+		removeMutation.mutate({ personId });
+	}
 
 	function handleReset() {
 		person.setActive(null);
-		actionDialog.onOpenChange(false);
-		removeDialog.onOpenChange(false);
-		assignDialog.onOpenChange(false);
+		setModal(null);
 	}
 
 	return {
-		t,
-		listQuery,
-		assignMutation,
-		els,
 		active: person.active,
-		actionDialog,
-		assignDialog,
-		removeDialog,
-		handleAction,
+		listQuery,
+		detailModal,
+		assignModal,
+		removeModal,
+		handleOpenDetailModal,
+		handleOpenRemoveModal,
+		handleRemove,
+		handleOpenAssignModal,
 	};
 }

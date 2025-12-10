@@ -19,5 +19,10 @@
 		"title": "This is",
 		"highlight": "the start"
 	},
+	"welcome": {
+		"title": "Welcome",
+		"highlight": "back!"
+	},
+	"dashboard": "Go to your dashboard",
 	"footer": "Designed and developed by"
 }

@@ -1,9 +1,9 @@
-import * as React from "react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { XIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { DialogState } from "@/hooks/use-dialog";
+import type { ModalState } from "@/hooks/use-modal";
 import { useLanguage } from "@/modules/language/use-language";
+import type { ReactNode, ComponentProps } from "react";
 
 const Root = DialogPrimitive.Root;
 const Portal = DialogPrimitive.Portal;
@@ -13,22 +13,24 @@ const Title = DialogPrimitive.Title;
 const Description = DialogPrimitive.Description;
 const Close = DialogPrimitive.Close;
 
-type DialogProps = DialogState & {
+type DialogProps = ModalState & {
+	id?: string;
 	showCloseButton?: boolean;
 	showTitle?: boolean;
 	showDescription?: boolean;
 	title: string;
 	description: string;
 	className?: string;
-	children: React.ReactNode;
-	closeButtonProps?: React.ComponentProps<"button">;
+	children: ReactNode;
+	closeButtonProps?: ComponentProps<"button">;
+	autoFocus?: boolean;
 };
 
 export function Dialog({
+	id,
 	open,
 	onOpenChange,
-	defaultOpen,
-	showCloseButton = true,
+	showCloseButton = false,
 	showTitle = false,
 	showDescription = false,
 	title,
@@ -36,18 +38,23 @@ export function Dialog({
 	className,
 	children,
 	closeButtonProps,
+	autoFocus = false,
+	ref,
 }: DialogProps) {
 	const { t: tCommon } = useLanguage("common");
 
 	return (
-		<Root data-slot="dialog" open={open} onOpenChange={onOpenChange} defaultOpen={defaultOpen}>
+		<Root data-slot="dialog" open={open} onOpenChange={onOpenChange}>
 			<Portal data-slot="dialog-portal">
 				<Overlay
+					tabIndex={-1}
 					data-slot="dialog-overlay"
 					className="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/50"
 				/>
 				<Content
-					onOpenAutoFocus={(e) => e.preventDefault()}
+					id={id}
+					ref={ref}
+					onOpenAutoFocus={autoFocus ? undefined : (e) => e.preventDefault()}
 					tabIndex={-1}
 					data-slot="dialog-content"
 					className={cn(
@@ -78,7 +85,8 @@ export function Dialog({
 						</Description>
 					</div>
 
-					{children}
+					<div>{children}</div>
+
 					{showCloseButton && (
 						<Close asChild>
 							<button

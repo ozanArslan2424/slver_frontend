@@ -1,124 +1,71 @@
-import { useAppContext } from "@/app";
 import { useForm } from "@/hooks/use-form";
+import { useModal } from "@/hooks/use-modal";
 import { getErrorMessage } from "@/lib/error.utils";
-import { prefixId } from "@/lib/utils";
+import { useAppContext } from "@/modules/context/app.context";
+import { useModalContext } from "@/modules/context/modal.context";
 import {
 	GroupCreateSchema,
 	GroupInviteSchema,
 	GroupJoinSchema,
 } from "@/modules/group/group.schema";
-import type { KeyboardElement } from "@/modules/keyboard/keyboard.schema";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { useRef } from "react";
-import { useTranslation } from "react-i18next";
 
 export type UseGroupModuleReturn = ReturnType<typeof useGroupModule>;
 
 export function useGroupModule() {
+	const { setModal } = useModalContext();
 	const { group } = useAppContext();
-	const { t } = useTranslation("group");
-	const createInputRef = useRef<HTMLInputElement | null>(null);
-	const joinInputRef = useRef<HTMLInputElement | null>(null);
-	const inviteInputRef = useRef<HTMLInputElement | null>(null);
+	const inviteModal = useModal();
 
 	const groupQuery = useQuery(group.get());
 
 	const groupCreateMutation = useMutation(
-		group.create(
-			() => {
-				createForm.reset();
-			},
-			(err) => {
-				createForm.setRootError(getErrorMessage(err));
-			},
-		),
+		group.create(handleReset, (err) => createForm.setRootError(getErrorMessage(err))),
 	);
-
 	const groupJoinMutation = useMutation(
-		group.join(
-			() => {
-				joinForm.reset();
-			},
-			(err) => {
-				joinForm.setRootError(getErrorMessage(err));
-			},
-		),
+		group.join(handleReset, (err) => joinForm.setRootError(getErrorMessage(err))),
 	);
-
 	const groupInviteMutation = useMutation(
-		group.invite(
-			() => {
-				inviteForm.reset();
-			},
-			(err) => {
-				inviteForm.setRootError(getErrorMessage(err));
-			},
-		),
+		group.invite(handleReset, (err) => inviteForm.setRootError(getErrorMessage(err))),
 	);
 
 	const createForm = useForm({
 		schema: GroupCreateSchema,
-		onSubmit: (body) => {
-			groupCreateMutation.mutate(body);
+		mutation: groupCreateMutation,
+		onSubmit: ({ values }) => {
+			groupCreateMutation.mutate(values);
 		},
 	});
 
 	const joinForm = useForm({
 		schema: GroupJoinSchema,
-		onSubmit: (body) => {
-			groupJoinMutation.mutate(body);
+		mutation: groupJoinMutation,
+		onSubmit: ({ values }) => {
+			groupJoinMutation.mutate(values);
 		},
 	});
 
 	const inviteForm = useForm({
 		schema: GroupInviteSchema,
-		defaultValues: {
-			role: false,
-		},
-		onSubmit: (body) => {
-			groupInviteMutation.mutate(body);
+		mutation: groupInviteMutation,
+		defaultValues: { role: false },
+		onSubmit: ({ values }) => {
+			groupInviteMutation.mutate(values);
 		},
 	});
 
-	const els: {
-		noGroup: KeyboardElement[];
-		yesGroup: KeyboardElement[];
-	} = {
-		noGroup: [
-			{
-				id: prefixId("create", "group"),
-				keyActions: {
-					Enter: () => createInputRef.current?.focus(),
-				},
-			},
-			{
-				id: prefixId("join", "group"),
-				keyActions: {
-					Enter: () => joinInputRef.current?.focus(),
-				},
-			},
-		],
-		yesGroup: [
-			{
-				id: prefixId("invite", "group"),
-				keyActions: {
-					Enter: () => inviteInputRef.current?.focus(),
-				},
-			},
-		],
-	};
+	function handleReset() {
+		createForm.reset();
+		joinForm.reset();
+		inviteForm.reset();
+		setModal(null);
+	}
 
 	return {
-		t,
-		els,
 		groupQuery,
-		groupCreateMutation,
-		groupJoinMutation,
+		inviteModal,
 		createForm,
 		joinForm,
 		inviteForm,
-		createInputRef,
-		joinInputRef,
-		inviteInputRef,
 	};
 }

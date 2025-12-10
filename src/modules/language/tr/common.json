@@ -1,27 +1,6 @@
 {
-	"app": {
-		"name": "slver"
-	},
-
+	"app": "slver",
 	"language": "English",
-
-	"login": "Giriş yap",
-	"register": "Kaydol",
-	"logout": "Çıkış yap",
-	"dashboard": "Ana Sayfa",
-
-	"searchPlaceholder": "Ara...",
-	"searchDialogOpen": "Arama diyalogunu aç",
-
-	"noData": "Gösterilecek veri bulunamadı",
-	"noResults": "SOnuç bulunamadı.",
-
-	"loading": "Yükleniyor...",
-	"error": "Bir hata oluştu, lütfen daha sonra tekrar deneyin.",
-
-	"more": "Daha fazla",
-	"less": "Daha az",
-
 	"create": "Oluştur",
 	"update": "Güncelle",
 	"delete": "Sil",
@@ -30,6 +9,17 @@
 	"cancel": "Vazgeç",
 	"close": "Kapat",
 	"join": "Katıl",
+	"more": "Daha fazla",
+	"less": "Daha az",
+	"back": "Geri dön",
+	"loading": "Yükleniyor...",
+	"error": "Bir hata oluştu, lütfen tekrar deneyin.",
+	"noData": "Gösterilecek veri bulunamadı.",
+	"noResults": "Sonuç bulunamadı.",
+	"search": "Ara",
+	"login": "Giriş yap",
+	"logout": "Çıkış yap",
+	"register": "Kayıt ol",
 
 	"pagination": {
 		"limit": "Limit",

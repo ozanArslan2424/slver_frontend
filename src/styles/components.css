@@ -6,7 +6,7 @@
 	}
 
 	.card {
-		@apply bg-card text-card-foreground overflow-hidden rounded-md border shadow-xs;
+		@apply bg-card text-card-foreground overflow-hidden rounded-lg border shadow-xs;
 
 		h1:not(.unset) {
 			@apply text-2xl font-black;
@@ -87,7 +87,7 @@
 		}
 
 		&.xl {
-			@apply size-12 p-3 font-black [&_svg]:size-7;
+			@apply size-9 p-2 font-black sm:size-12 sm:p-3 [&_svg]:size-5 sm:[&_svg]:size-7;
 		}
 	}
 }

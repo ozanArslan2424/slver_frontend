@@ -8,10 +8,12 @@ import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import advancedFormat from "dayjs/plugin/advancedFormat";
 import type { TUnknownObject } from "@/lib/helper.type";
+import type { locales } from "@/modules/language/language.config";
 
 type DInput = dayjs.ConfigType;
+type NS = keyof (typeof locales)["en"];
 
-export function useLanguage(ns?: string) {
+export function useLanguage(ns?: NS) {
 	const { t, i18n } = useTranslation(ns);
 	dayjs.extend(advancedFormat);
 	dayjs.extend(utc);
@@ -30,8 +32,8 @@ export function useLanguage(ns?: string) {
 		dateTimeNumber: dayjs(date).format("DD.MM.YYYY HH:mm"),
 		dateTimeShort: dayjs(date).format("DD MMM YYYY HH:mm"),
 		dateTimeLong: dayjs(date).format("DD MMMM YYYY HH:mm"),
-		ordinalDateTime: dayjs(date).format("Do [of] MMMM, [at] HH:mm"),
-		ordinalDate: dayjs(date).format("Do [of] MMMM"),
+		ordinalDateTime: dayjs(date).format("D MMMM, HH:mm"),
+		ordinalDate: dayjs(date).format("D MMMM"),
 		date: dayjs(date).format("YYYY-MM-DD"),
 		numberInMonth: dayjs(date).format("D"),
 		numberInWeek: dayjs(date).format("d"),
@@ -51,7 +53,7 @@ export function useLanguage(ns?: string) {
 		same: (compare: DInput) => dayjs(date).isSame(compare),
 	});
 
-	const makeTranslator = (ns: string) => (key: string, opts?: TUnknownObject) =>
+	const makeTranslator = (ns: NS) => (key: string, opts?: TUnknownObject) =>
 		t(key, { ns, ...opts });
 
 	return {

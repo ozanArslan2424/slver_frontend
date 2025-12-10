@@ -1,69 +1,62 @@
 {
 	"title": "Şeyler",
+
 	"form": {
-		"fields": {
-			"title": {
-				"label": "Yeni bir şey",
-				"title": "Buraya yapılacak şeyin içeriğini yazıyorsun.",
-				"error": "Her şeyin bir içeriği olmalı"
-			},
-			"dueDate": {
-				"label": "Teslim tarihi"
-			}
+		"content": {
+			"label": "Yeni bir şey",
+			"error": "Her şeyin bir içeriği olmalı"
+		},
+		"dueDate": {
+			"label": "Teslim tarihi",
+			"error": "Geçersiz teslim tarihi"
+		},
+		"assignedToId": {
+			"label": "Birisine ata"
 		},
 		"submit": "Gönder",
 		"cancel": "Vazgeç"
 	},
+
 	"detail": {
-		"label": "Detayları gör",
+		"trigger": "Detayları gör",
 		"title": "{{id}} kimlikli şeyin detayları",
-		"description": "Bir şeyin detay diyalogu",
-		"fields": {
-			"id": {
-				"label": "ID"
-			},
-			"createdAt": {
-				"label": "{{date}} tarihinde gönderildi."
-			},
-			"dueDate": {
-				"labelNotDone": "Teslim tarihi {{date}}.",
-				"labelDone": "{{date}} tarihinde teslim edildi."
-			},
-			"isDone": {
-				"label": "{{date}} tarihinde bitti."
-			},
-			"assignedTo": {
-				"nobody": "Buna kimse bakmıyor.",
-				"somebody": "Buna {{name}} bakıyor."
-			}
+		"description": "Detay modal'ı",
+		"assignedTo": {
+			"somebody": "{{name}} buna bakıyor.",
+			"nobody": "Kimse buna bakmıyor."
+		},
+		"createdAt": "{{date}} tarihinde oluşturuldu.",
+		"dueDate": {
+			"notDone": "{{date}} tarihine kadar teslim edilmeli.",
+			"done": "{{date}} tarihine kadar teslim edilmeliydi."
+		},
+		"isDone": "{{date}} tarihinde bitirildi.",
+		"buttons": {
+			"update": "Güncelle",
+			"assign": "Birisine ata",
+			"markAsDone": "Bitti işaretle",
+			"markAsNotDone": "Devam ediyor işaretle",
+			"remove": "Sil"
 		}
 	},
+
 	"update": {
-		"label": "Güncelle",
-		"title": "Bu şeyi güncelle",
-		"description": "Bir şeyi güncelleme diyalogu"
+		"title": "Güncelle",
+		"description": "{{id}} kimlikli şeyin günceleme modal'ı"
 	},
+
 	"assign": {
-		"label": "Birisine ata"
+		"title": "Birisine ata",
+		"description": "{{id}} kimlikli şeyin atama modal'ı"
 	},
-	"done": {
-		"title": "Bitti",
-		"label": "Bitti olarak işaretle",
-		"description": "Bitti olarak işaretlemek için buraya taşı"
+
+	"status": {
+		"done": "Bitti işaretlemek için buraya taşı",
+		"notDone": "Devam ediyor işaretlemek için buraya taşı"
 	},
-	"notDone": {
-		"label": "Bitmedi olarak işaretle",
-		"description": "Bitmedi olarak işaretlemek için buraya taşı"
-	},
+
 	"remove": {
-		"label": "Sil",
-		"confirm": {
-			"title": "Bu şey tamamen silinecek",
-			"description": "Bir şey bir kere silindiğinde geri getirilemez. Emin misiniz?",
-			"error": "Hiçbir şey seçilmemiş!"
-		}
-	},
-	"retry": {
-		"create": "Oluşturulamadı, tekrar denemek için buraya tıkla."
+		"title": "Bu şeyi tamamen silmek üzeresiniz.",
+		"description": "Bir şey silindiğinde geri alınamaz. Emin misiniz?"
 	}
 }

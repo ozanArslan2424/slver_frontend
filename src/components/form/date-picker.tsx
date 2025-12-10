@@ -1,11 +1,11 @@
 import { ChevronDownIcon } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Popover } from "@/components/modals/popover";
 import { useLanguage } from "@/modules/language/use-language";
 import { cn } from "@/lib/utils";
 import { useState, type ReactNode } from "react";
 
-interface DatePickerProps {
+type DatePickerProps = {
 	id?: string;
 	name?: string;
 	value?: string;
@@ -16,7 +16,7 @@ interface DatePickerProps {
 	placeholder?: string;
 	className?: string;
 	renderTrigger?: (open: boolean, value: Date | undefined) => ReactNode;
-}
+};
 
 export function DatePicker({
 	id,
@@ -31,7 +31,7 @@ export function DatePicker({
 	renderTrigger,
 }: DatePickerProps) {
 	const { timestamp } = useLanguage();
-	const [open, setOpen] = useState(false);
+	const [open, onOpenChange] = useState(false);
 	const [dateValue, setDateValue] = useState(
 		value ? new Date(value) : defaultValue ? new Date(defaultValue) : undefined,
 	);
@@ -46,15 +46,18 @@ export function DatePicker({
 		}
 
 		setDateValue(newDateTime);
-		setOpen(false);
+		onOpenChange(false);
 	};
 
 	return (
 		<>
 			<input type="hidden" id={id} name={name} value={dateValue?.toISOString()} />
-			<Popover open={open} onOpenChange={setOpen}>
-				<PopoverTrigger asChild>
-					{renderTrigger ? (
+			<Popover
+				id={`${id ?? name}_popover`}
+				open={open}
+				onOpenChange={onOpenChange}
+				trigger={(open) =>
+					renderTrigger ? (
 						renderTrigger(open, dateValue)
 					) : (
 						<button className={cn("outlined w-full justify-between font-normal", className)}>
@@ -65,18 +68,19 @@ export function DatePicker({
 									: ". . / . . / . . . ."}
 							<ChevronDownIcon className={cn("transition-all", open ? "rotate-180" : "rotate-0")} />
 						</button>
-					)}
-				</PopoverTrigger>
-				<PopoverContent className="w-auto overflow-hidden p-0" align="start">
-					<Calendar
-						mode="single"
-						selected={dateValue}
-						captionLayout="dropdown"
-						onSelect={handleDateSelect}
-						startMonth={startDate}
-						endMonth={endDate}
-					/>
-				</PopoverContent>
+					)
+				}
+				className="w-auto overflow-hidden p-0"
+				align="start"
+			>
+				<Calendar
+					mode="single"
+					selected={dateValue}
+					captionLayout="dropdown"
+					onSelect={handleDateSelect}
+					startMonth={startDate}
+					endMonth={endDate}
+				/>
 			</Popover>
 		</>
 	);

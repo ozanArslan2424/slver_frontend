@@ -1,4 +1,4 @@
-import { Dialog } from "@/components/ui/dialog";
+import { Dialog } from "@/components/modals/dialog";
 import { Combobox } from "@/components/form/combobox";
 import { DatePicker } from "@/components/form/date-picker";
 import { FormField } from "@/components/form/form-field";
@@ -8,40 +8,62 @@ import { CalendarPlusIcon, ChevronDownIcon } from "lucide-react";
 import { PersonAvatar } from "@/components/ui/person-avatar";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/modules/language/use-language";
+import type { ComponentProps } from "react";
 
-type ThingUpdateDialogProps = {
+type ThingUpdateModalProps = {
 	thingModule: UseThingModuleReturn;
 	personModule: UsePersonModuleReturn;
+	textareaProps: ComponentProps<"textarea">;
+	datepickerProps: ComponentProps<"button">;
+	comboboxProps: ComponentProps<"button">;
+	cancelProps: ComponentProps<"button">;
+	submitProps: ComponentProps<"button">;
 };
 
-export function ThingUpdateDialog({ thingModule, personModule }: ThingUpdateDialogProps) {
+export function ThingUpdateModal({
+	thingModule,
+	personModule,
+	textareaProps,
+	datepickerProps,
+	comboboxProps,
+	cancelProps,
+	submitProps,
+}: ThingUpdateModalProps) {
 	const { t, timestamp } = useLanguage("thing");
 	const thing = thingModule.active;
+	const modal = thingModule.updateModal;
 	const form = thingModule.updateForm;
-	const dialog = thingModule.updateDialog;
-	const textareaRef = thingModule.textareaRef;
+	const isPending = form.isPending;
 
 	if (!thing) return null;
 	return (
-		<Dialog {...dialog} showTitle title={t("update.title")} description={t("update.description")}>
+		<Dialog {...modal} showTitle title={t("update.title")} description={t("update.description")}>
 			<form {...form.methods} className="flex flex-col gap-3">
 				<div className="flex flex-1 flex-col gap-3">
-					<FormField form={form} name="content" id="content">
+					<FormField form={form} name="content" id="content" label={t("form.content.label")}>
 						<textarea
-							placeholder={t("form.fields.title.label")}
-							title={t("form.fields.title.title")}
+							{...textareaProps}
+							className={cn("min-h-40", textareaProps.className)}
+							placeholder={t("")}
 							required
-							className="min-h-40"
-							ref={textareaRef}
+							disabled={isPending}
+							spellCheck
 						/>
 					</FormField>
 
-					<FormField form={form} name="dueDate" id="dueDate">
+					<FormField form={form} name="dueDate" id="dueDate" label={t("form.dueDate.label")}>
 						<DatePicker
 							startDate={new Date()}
 							endDate={new Date(2040, 0, 1)}
 							renderTrigger={(open, val) => (
-								<button className="outlined neon lg w-full justify-between font-normal">
+								<button
+									{...datepickerProps}
+									className={cn(
+										"outlined neon lg w-full justify-between font-normal",
+										datepickerProps.className,
+									)}
+									disabled={isPending}
+								>
 									<div className="flex items-center gap-3">
 										<div className="squircle size-7 font-black">
 											<CalendarPlusIcon className="size-4" />
@@ -56,7 +78,12 @@ export function ThingUpdateDialog({ thingModule, personModule }: ThingUpdateDial
 						/>
 					</FormField>
 
-					<FormField form={form} name="assignedToId" id="assignedToId">
+					<FormField
+						form={form}
+						name="assignedToId"
+						id="assignedToId"
+						label={t("form.assignedToId.label")}
+					>
 						<Combobox
 							side="bottom"
 							options={(personModule.listQuery.data ?? []).map((person) => ({
@@ -65,7 +92,14 @@ export function ThingUpdateDialog({ thingModule, personModule }: ThingUpdateDial
 								...person,
 							}))}
 							renderTrigger={(open, val) => (
-								<button className="outlined neon lg w-full justify-between font-normal">
+								<button
+									{...comboboxProps}
+									className={cn(
+										"outlined neon lg w-full justify-between font-normal",
+										comboboxProps.className,
+									)}
+									disabled={isPending}
+								>
 									<div className="flex items-center gap-3">
 										<PersonAvatar
 											person={val ? val : { name: "?", image: undefined }}
@@ -88,10 +122,20 @@ export function ThingUpdateDialog({ thingModule, personModule }: ThingUpdateDial
 				</div>
 
 				<div className="grid grid-cols-3 items-center gap-2">
-					<button type="reset" className="ghost col-span-1">
+					<button
+						type="reset"
+						{...cancelProps}
+						className={cn("ghost col-span-1", cancelProps.className)}
+						disabled={isPending}
+					>
 						{t("form.cancel")}
 					</button>
-					<button type="submit" className="col-span-2">
+					<button
+						type="submit"
+						{...submitProps}
+						className={cn("col-span-2", submitProps.className)}
+						disabled={isPending}
+					>
 						{t("form.submit")}
 					</button>
 				</div>

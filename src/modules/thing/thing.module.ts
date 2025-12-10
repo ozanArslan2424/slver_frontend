@@ -20,7 +20,7 @@ export class ThingModule extends Module<ThingData> {
 		private readonly authModule: AuthModule,
 		private readonly personModule: PersonModule,
 	) {
-		super(ThingModule.name);
+		super();
 	}
 
 	readonly queryList = () =>
@@ -47,13 +47,13 @@ export class ThingModule extends Module<ThingData> {
 		};
 	}
 
-	find(id: ThingData["id"]): ThingData | null {
+	find = (id: ThingData["id"]): ThingData | null => {
 		const queryData = this.queryModule.getQueryData<ThingData[]>([apiRoutes.thing.list]);
 		if (!queryData) return null;
 		return queryData.find((t) => t.id === id) ?? null;
-	}
+	};
 
-	readonly create = (onChange: () => void) =>
+	readonly create = (onSuccess?: () => void, onError?: (err: Error) => void) =>
 		this.queryModule.makeOptimisticMutation<ThingCreateData, ThingData, ThingData[]>({
 			mutationFn: (body) => this.request.post(apiRoutes.thing.create, body),
 			queryKey: [apiRoutes.thing.list],
@@ -61,7 +61,7 @@ export class ThingModule extends Module<ThingData> {
 				const placeholder = this.make(vars);
 				return [placeholder, ...prev];
 			},
-			onChange,
+			onError,
 			onSuccess: (res) => {
 				this.queryModule.updateListData({
 					queryKey: [apiRoutes.thing.list],
@@ -69,14 +69,16 @@ export class ThingModule extends Module<ThingData> {
 					data: res,
 					prevId: -1,
 				});
+				onSuccess?.();
 			},
 		});
 
-	readonly update = (onChange: () => void) =>
+	readonly update = (onSuccess?: () => void, onError?: (err: Error) => void) =>
 		this.queryModule.makeOptimisticMutation<ThingUpdateData, ThingData, ThingData[]>({
 			queryKey: [apiRoutes.thing.list],
 			mutationFn: (body) => this.request.post(apiRoutes.thing.update, body),
-			onChange,
+			onSuccess,
+			onError,
 			updater: (prev, vars) =>
 				prev.map((t) => {
 					if (t.id === vars.thingId) {
@@ -91,19 +93,21 @@ export class ThingModule extends Module<ThingData> {
 				}),
 		});
 
-	readonly remove = (onChange: () => void) =>
+	readonly remove = (onSuccess?: () => void, onError?: (err: Error) => void) =>
 		this.queryModule.makeOptimisticMutation<ThingRemoveData, ThingData, ThingData[]>({
 			queryKey: [apiRoutes.thing.list],
 			mutationFn: (body) => this.request.post(apiRoutes.thing.remove, body),
-			onChange,
+			onSuccess,
+			onError,
 			updater: (prev, vars) => prev.filter((t) => t.id !== vars.thingId),
 		});
 
-	readonly assign = (onChange: () => void) =>
+	readonly assign = (onSuccess?: () => void, onError?: (err: Error) => void) =>
 		this.queryModule.makeOptimisticMutation<ThingAssignData, ThingData, ThingData[]>({
 			queryKey: [apiRoutes.thing.list],
 			mutationFn: (body) => this.request.post(apiRoutes.thing.assign, body),
-			onChange,
+			onSuccess,
+			onError,
 			updater: (prev, vars) =>
 				prev.map((t) => {
 					if (t.id === vars.thingId) {
@@ -114,11 +118,12 @@ export class ThingModule extends Module<ThingData> {
 				}),
 		});
 
-	readonly done = (onChange: () => void) =>
+	readonly done = (onSuccess?: () => void, onError?: (err: Error) => void) =>
 		this.queryModule.makeOptimisticMutation<ThingDoneData, ThingData, ThingData[]>({
 			queryKey: [apiRoutes.thing.list],
 			mutationFn: (body) => this.request.post(apiRoutes.thing.done, body),
-			onChange,
+			onSuccess,
+			onError,
 			updater: (prev, vars) =>
 				prev.map((t) => {
 					if (t.id === vars.thingId) {
