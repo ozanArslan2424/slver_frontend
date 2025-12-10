@@ -28,7 +28,7 @@
 	--card: hsl(210, 40%, 96%);
 	--card-foreground: hsl(215, 25%, 25%);
 	--border: hsl(210, 50%, 90%);
-	--ring: hsl(205, 70%, 70%);
+	--ring: hsl(205, 70%, 65%);
 	--background: hsl(210, 60%, 99%);
 	--foreground: hsl(215, 25%, 25%);
 	--primary: hsl(205, 60%, 50%);
@@ -43,7 +43,7 @@
 	--background: hsl(215, 30%, 4%);
 	--foreground: hsl(210, 40%, 95%);
 	--border: hsl(215, 25%, 25%);
-	--ring: hsl(205, 75%, 70%);
+	--ring: hsl(205, 75%, 65%);
 	--card: hsl(215, 30%, 10%);
 	--card-foreground: hsl(210, 40%, 95%);
 	--primary: hsl(205, 75%, 70%);

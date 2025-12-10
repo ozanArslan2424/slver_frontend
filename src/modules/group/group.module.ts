@@ -20,7 +20,7 @@ export class GroupModule extends Module<GroupData> {
 		private readonly request: RequestModule,
 		private readonly store: StoreModule<StoreData>,
 	) {
-		super(GroupModule.name);
+		super();
 	}
 
 	setGroupId(value: number | null) {

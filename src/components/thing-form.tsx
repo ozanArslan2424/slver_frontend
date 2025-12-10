@@ -27,19 +27,19 @@ export function ThingForm({
 			<form {...form.methods} className="flex flex-col gap-2">
 				<FormField form={form} name="content" id="content">
 					<textarea
-						placeholder={t("form.fields.content.label")}
-						title={t("form.fields.content.title")}
+						placeholder={t("form.content.label")}
 						required
 						disabled={form.isPending}
 						{...textareaProps}
 						className={cn("bg-card border-card min-h-20", textareaProps.className)}
+						spellCheck
 					/>
 				</FormField>
 
 				<div className="flex items-center gap-2">
 					<FormField form={form} name="dueDate" id="dueDate" className="w-min max-w-min">
 						<DatePicker
-							placeholder={t("form.fields.dueDate.label")}
+							placeholder={t("form.dueDate.label")}
 							startDate={new Date()}
 							endDate={new Date(2040, 0, 1)}
 							renderTrigger={(open, value) => (

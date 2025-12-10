@@ -17,14 +17,12 @@ export function ThingRemoveModal({
 	const { t } = useLanguage("thing");
 	const modal = thingModule.removeModal;
 	const handleRemove = thingModule.handleRemove;
-	const title = t("remove.confirm.title");
-	const description = t("remove.confirm.description");
 
 	return (
 		<ConfirmDialog
 			{...modal}
-			title={title}
-			description={description}
+			title={t("remove.title")}
+			description={t("remove.description")}
 			onConfirm={handleRemove}
 			confirmProps={confirmProps}
 			cancelProps={cancelProps}

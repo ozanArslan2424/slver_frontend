@@ -15,6 +15,8 @@ type FormFieldProps<F> = {
 	>;
 	className?: string;
 	sublabel?: string;
+	labelClassName?: string;
+	labelPlacement?: "top" | "left" | "right" | "bottom";
 };
 
 export function FormField<F>(props: FormFieldProps<F>) {
@@ -25,6 +27,7 @@ export function FormField<F>(props: FormFieldProps<F>) {
 		id: string;
 		name: string;
 		defaultValue?: string | undefined;
+		className?: string;
 	}>(props.children, {
 		id,
 		name: props.name as string,
@@ -44,8 +47,23 @@ export function FormField<F>(props: FormFieldProps<F>) {
 
 	return (
 		<div className={cn("flex w-full flex-1 flex-col gap-1", props.className)}>
-			{props.label && <label htmlFor={id}>{props.label}</label>}
-			{renderNode()}
+			<div
+				className={cn(
+					"flex w-full flex-1",
+					props.labelPlacement === undefined && "flex-col items-start gap-1",
+					props.labelPlacement === "top" && "flex-col items-start gap-1",
+					props.labelPlacement === "bottom" && "flex-col-reverse items-start gap-1",
+					props.labelPlacement === "left" && "flex-row items-center justify-start gap-3",
+					props.labelPlacement === "right" && "flex-row-reverse items-center justify-end gap-3",
+				)}
+			>
+				{props.label && (
+					<label htmlFor={id} className={props.labelClassName}>
+						{props.label}
+					</label>
+				)}
+				{renderNode()}
+			</div>
 			{props.sublabel && (
 				<label className="sublabel" htmlFor={id}>
 					{props.sublabel}

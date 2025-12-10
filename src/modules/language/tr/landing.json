@@ -1,5 +1,4 @@
 {
-	"dashboard": "Anasayfa",
 	"app": {
 		"title": "Bu",
 		"highlight": "slver",
@@ -20,5 +19,10 @@
 		"title": "Bu",
 		"highlight": "başlangıç"
 	},
+	"welcome": {
+		"title": "Yeniden",
+		"highlight": "hoş geldin!"
+	},
+	"dashboard": "Ana sayfana git",
 	"footer": "Tasarım ve geliştirme,"
 }

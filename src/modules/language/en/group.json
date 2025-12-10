@@ -16,7 +16,7 @@
 				"label": "Email"
 			},
 			"role": {
-				"label": "Invite as Admin",
+				"label": "Invite as admin",
 				"admin": "Admin",
 				"user": "User"
 			}

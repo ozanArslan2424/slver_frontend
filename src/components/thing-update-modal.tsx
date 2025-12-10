@@ -40,18 +40,18 @@ export function ThingUpdateModal({
 		<Dialog {...modal} showTitle title={t("update.title")} description={t("update.description")}>
 			<form {...form.methods} className="flex flex-col gap-3">
 				<div className="flex flex-1 flex-col gap-3">
-					<FormField form={form} name="content" id="content">
+					<FormField form={form} name="content" id="content" label={t("form.content.label")}>
 						<textarea
 							{...textareaProps}
 							className={cn("min-h-40", textareaProps.className)}
-							placeholder={t("form.fields.content.label")}
-							title={t("form.fields.content.title")}
+							placeholder={t("")}
 							required
 							disabled={isPending}
+							spellCheck
 						/>
 					</FormField>
 
-					<FormField form={form} name="dueDate" id="dueDate">
+					<FormField form={form} name="dueDate" id="dueDate" label={t("form.dueDate.label")}>
 						<DatePicker
 							startDate={new Date()}
 							endDate={new Date(2040, 0, 1)}
@@ -78,7 +78,12 @@ export function ThingUpdateModal({
 						/>
 					</FormField>
 
-					<FormField form={form} name="assignedToId" id="assignedToId">
+					<FormField
+						form={form}
+						name="assignedToId"
+						id="assignedToId"
+						label={t("form.assignedToId.label")}
+					>
 						<Combobox
 							side="bottom"
 							options={(personModule.listQuery.data ?? []).map((person) => ({

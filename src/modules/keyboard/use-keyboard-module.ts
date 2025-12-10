@@ -1,17 +1,15 @@
 import { useIsMobile } from "@/hooks/use-mobile";
-import { getNextIndex, isObjectWith, isValidIndex, toStringBoolean } from "@/lib/utils";
+import { cn, getNextIndex, isObjectWith, isValidIndex, toStringBoolean } from "@/lib/utils";
 import type {
 	SlimElementProps,
 	SlimDispatch,
 	SlimDispatchBase,
 	SlimActions,
-	SlimActionDefinition,
 	SlimVisualElement,
 } from "@/modules/keyboard/keyboard.schema";
 import { useModeContext } from "@/modules/context/mode.context";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { TXT } from "@/lib/txt.namespace";
-import { Obj } from "@/lib/obj.namespace";
 import { useRangeContext } from "@/modules/context/range.context";
 
 const focusedElementSelector = "[data-visual-item=true][data-focus=true]";
@@ -26,8 +24,7 @@ const stringSeparator = "_&_";
 export function useKeyboardModule<T extends SlimDispatchBase>(dispatch: SlimDispatch<T>) {
 	const isMobile = useIsMobile();
 	const { range } = useRangeContext();
-	const { mode, setMode, setKeys } = useModeContext();
-	const [index, setIndex] = useState(0);
+	const { mode, setMode, setKeys, index, setIndex } = useModeContext();
 
 	useEffect(() => {
 		const getFocusedElement = (): SlimVisualElement | null => {
@@ -47,8 +44,9 @@ export function useKeyboardModule<T extends SlimDispatchBase>(dispatch: SlimDisp
 			});
 		};
 
-		const getVisualElements = (): HTMLElement[] | null => {
-			const nodeList = range.querySelectorAll(visualElementSelector);
+		const getVisualElements = (withRange = true): HTMLElement[] | null => {
+			const getFrom = withRange ? range : document;
+			const nodeList = getFrom.querySelectorAll(visualElementSelector);
 			if (nodeList.length === 0) return null;
 			return Array.from(nodeList) as HTMLElement[];
 		};
@@ -61,6 +59,7 @@ export function useKeyboardModule<T extends SlimDispatchBase>(dispatch: SlimDisp
 			if (nextIndex === undefined) return;
 
 			const focusedElement = elements[nextIndex];
+			console.log(focusedElement.id);
 			focusedElement.setAttribute("data-focus", toStringBoolean(true));
 			focusedElement.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" });
 		};
@@ -108,18 +107,20 @@ export function useKeyboardModule<T extends SlimDispatchBase>(dispatch: SlimDisp
 			if (!action) return;
 
 			e.preventDefault();
-
 			dispatch({ fn: action.fn, payload: action.payload } as T, focusedElement);
+			requestAnimationFrame(() => {
+				const elements = getVisualElements();
+				if (elements) updateFocus(elements, 0);
+			});
 		};
 
 		const reset = () => {
+			setIndex(0);
 			setMode("normal");
 			setKeys([]);
 			requestAnimationFrame(() => {
-				const elements = getVisualElements();
-				if (elements) {
-					updateFocus(elements);
-				}
+				const elements = getVisualElements(false);
+				if (elements) updateFocus(elements);
 			});
 		};
 
@@ -204,17 +205,17 @@ export function useKeyboardModule<T extends SlimDispatchBase>(dispatch: SlimDisp
 				input.removeEventListener("blur", inputBlur);
 			});
 		};
-	}, [mode, index, range, isMobile, setMode, setKeys, dispatch]);
+	}, [mode, index, range, isMobile, setMode, setKeys, dispatch, setIndex]);
 
-	const register = (id: string, actions: SlimActions<T>): SlimElementProps => {
-		const entries = Obj.entries<SlimActionDefinition<T["fn"], T["payload"]>>(actions);
+	const register = (id: string, actions: SlimActions<T>, className?: string): SlimElementProps => {
+		const entries = Object.entries(actions);
 		const actionsAttr = entries
 			.map(([key, a]) => [key, a.fn, JSON.stringify(a.payload ?? "{}")].join(stringSeparator))
 			.join(";");
 		return {
 			id,
 			tabIndex: -1,
-			className: "data-[focus=true]:ring-primary ring ring-transparent",
+			className: cn("data-[focus=true]:ring-ring ring-2 ring-transparent", className),
 			"data-visual-item": true,
 			"data-actions": actionsAttr,
 		};

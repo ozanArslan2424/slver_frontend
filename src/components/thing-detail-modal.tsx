@@ -5,45 +5,31 @@ import { cn } from "@/lib/utils";
 import { useLanguage } from "@/modules/language/use-language";
 import type { UseThingModuleReturn } from "@/modules/thing/use-thing-module";
 import { CalendarCogIcon, CheckIcon } from "lucide-react";
-import type { ComponentProps, ReactNode } from "react";
+import type { ComponentProps } from "react";
+import { ThingDetailLine } from "@/components/thing-detail-line";
 
 type ThingDetailModalProps = {
 	thingModule: UseThingModuleReturn;
 	updateProps: ComponentProps<"button">;
 	removeProps: ComponentProps<"button">;
+	statusProps: ComponentProps<"button">;
+	assignProps: ComponentProps<"button">;
 };
 
-function ThingInfoLine({
-	icon,
-	squircle,
-	label,
-	className,
-}: {
-	icon?: ReactNode;
-	squircle?: ReactNode;
-	label: string;
-	className?: string;
-}) {
-	return (
-		<div className={cn("flex items-center gap-2 sm:gap-3", className)}>
-			{squircle ? (
-				<div className="squircle bg-card text-card-foreground ring-border h-8.5 w-8.5 ring">
-					{squircle}
-				</div>
-			) : (
-				icon
-			)}
-			<p className="text-sm font-bold wrap-break-word sm:text-base">{label}</p>
-		</div>
-	);
-}
-
-export function ThingDetailModal({ thingModule, updateProps, removeProps }: ThingDetailModalProps) {
+export function ThingDetailModal({
+	thingModule,
+	updateProps,
+	removeProps,
+	statusProps,
+	assignProps,
+}: ThingDetailModalProps) {
 	const { t, timestamp } = useLanguage("thing");
 
 	const thing = thingModule.active;
 	const handleOpenUpdateModal = thingModule.handleOpenUpdateModal;
 	const handleOpenRemoveModal = thingModule.handleOpenRemoveModal;
+	const handleOpenAssignModal = thingModule.handleOpenAssignModal;
+	const handleUpdateStatus = thingModule.handleUpdateStatus;
 	const modal = thingModule.detailModal;
 
 	const iconSize = "size-5";
@@ -54,8 +40,8 @@ export function ThingDetailModal({ thingModule, updateProps, removeProps }: Thin
 		<Dialog
 			{...modal}
 			className="bg-card text-card-foreground"
-			title={t("detail.fields.title", { id: thing.id })}
-			description={t("detail.fields.description")}
+			title={t("detail.title", { id: thing.id })}
+			description={t("detail.description")}
 		>
 			<div className="flex flex-col gap-3 p-2">
 				<ScrollArea className="max-h-[180px] sm:max-h-80">
@@ -64,7 +50,7 @@ export function ThingDetailModal({ thingModule, updateProps, removeProps }: Thin
 					</p>
 				</ScrollArea>
 
-				<ThingInfoLine
+				<ThingDetailLine
 					icon={
 						<PersonAvatar
 							person={thing.assignedTo ?? { image: undefined, name: "?" }}
@@ -73,53 +59,65 @@ export function ThingDetailModal({ thingModule, updateProps, removeProps }: Thin
 					}
 					label={
 						thing.assignedTo
-							? t("detail.fields.assignedTo.somebody", { name: thing.assignedTo.name })
-							: t("detail.fields.assignedTo.nobody")
+							? t("detail.assignedTo.somebody", { name: thing.assignedTo.name })
+							: t("detail.assignedTo.nobody")
 					}
 				/>
 
-				<ThingInfoLine
+				<ThingDetailLine
 					squircle={<CalendarCogIcon className={iconSize} />}
-					label={t("detail.fields.createdAt.label", {
+					label={t("detail.createdAt", {
 						date: timestamp(thing.createdAt).ordinalDateTime,
 					})}
 				/>
 
 				{thing.dueDate && (
-					<ThingInfoLine
+					<ThingDetailLine
 						squircle="!!"
 						className={thing.isDone ? "opacity-50" : ""}
-						label={t(`detail.fields.dueDate.${thing.isDone ? "labelDone" : "labelNotDone"}`, {
+						label={t(`detail.dueDate.${thing.isDone ? "done" : "notDone"}`, {
 							date: timestamp(thing.dueDate).ordinalDate,
 						})}
 					/>
 				)}
 
 				{thing.isDone && thing.doneDate && (
-					<ThingInfoLine
+					<ThingDetailLine
 						squircle={<CheckIcon className={cn("text-emerald-500", iconSize)} />}
-						label={t("detail.fields.isDone.label", {
+						label={t("detail.isDone", {
 							date: timestamp(thing.doneDate).ordinalDateTime,
 						})}
 					/>
 				)}
 
-				<div className="flex items-center gap-3">
-					{!thing.isDone && (
-						<button
-							onClick={() => handleOpenUpdateModal(thing.id)}
-							{...updateProps}
-							className={cn("outlined h-9 w-full rounded-lg", updateProps.className)}
-						>
-							{t("update.label")}
-						</button>
-					)}
+				<div className="grid grid-cols-2 gap-3">
+					<button
+						onClick={() => handleOpenUpdateModal(thing.id)}
+						{...updateProps}
+						className={cn("outlined h-9 w-full rounded-lg", updateProps.className)}
+					>
+						{t("detail.buttons.update")}
+					</button>
+					<button
+						onClick={() => handleOpenAssignModal(thing.id)}
+						{...assignProps}
+						className={cn("outlined h-9 w-full rounded-lg", assignProps.className)}
+					>
+						{t("detail.buttons.assign")}
+					</button>
+					<button
+						onClick={() => handleUpdateStatus(thing.id)}
+						{...statusProps}
+						className={cn("outlined h-9 w-full rounded-lg", statusProps.className)}
+					>
+						{t(`detail.buttons.${thing.isDone ? "markAsNotDone" : "markAsDone"}`)}
+					</button>
 					<button
 						onClick={() => handleOpenRemoveModal(thing.id)}
 						{...removeProps}
 						className={cn("outlined h-9 w-full rounded-lg", removeProps.className)}
 					>
-						{t("remove.label")}
+						{t("detail.buttons.remove")}
 					</button>
 				</div>
 			</div>

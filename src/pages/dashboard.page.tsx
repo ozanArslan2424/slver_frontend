@@ -21,9 +21,10 @@ import { PersonRemoveModal } from "@/components/person-remove-modal";
 import { useIsMobile } from "@/hooks/use-mobile";
 import type { ThingData } from "@/modules/thing/thing.schema";
 import { useLanguage } from "@/modules/language/use-language";
-import { PersonMenuModal } from "@/components/person-menu-modal";
+import { PersonDetailModal } from "@/components/person-detail-modal";
 import type { PersonData } from "@/modules/person/person.schema";
 import { ThingAssignModal } from "@/components/thing-assign-dialog";
+import { Dialog } from "@/components/modals/dialog";
 
 type KeyboardDispatch =
 	| { fn: "click" }
@@ -61,7 +62,7 @@ export function DashboardPage() {
 				thingModule.handleAssign(action.payload);
 				break;
 			case "person_item_menu":
-				personModule.handleOpenMenuModal(action.payload);
+				personModule.handleOpenDetailModal(action.payload);
 				break;
 			case "person_item_assign":
 				personModule.handleOpenAssignModal(action.payload);
@@ -116,7 +117,7 @@ export function DashboardPage() {
 
 	return (
 		<PageContent>
-			<PersonMenuModal personModule={personModule} authModule={authModule} />
+			<PersonDetailModal personModule={personModule} authModule={authModule} />
 			<PersonRemoveModal
 				personModule={personModule}
 				confirmProps={registerVisualItem("person_remove_confirm", { Enter: { fn: "click" } })}
@@ -141,6 +142,8 @@ export function DashboardPage() {
 				thingModule={thingModule}
 				removeProps={registerVisualItem("thing_remove_button", { Enter: { fn: "click" } })}
 				updateProps={registerVisualItem("thing_update_button", { Enter: { fn: "click" } })}
+				statusProps={registerVisualItem("thing_status_button", { Enter: { fn: "click" } })}
+				assignProps={registerVisualItem("thing_assign_button", { Enter: { fn: "click" } })}
 			/>
 
 			<ThingAssignModal
@@ -185,16 +188,34 @@ export function DashboardPage() {
 							/>
 						) : (
 							<div className="flex flex-col gap-3">
-								<GroupInviteForm
-									groupModule={groupModule}
-									inputProps={registerVisualItem("group_invite_input", { Enter: { fn: "click" } })}
-									checkboxProps={registerVisualItem("group_invite_checkbox", {
-										Enter: { fn: "click" },
-									})}
-									submitProps={registerVisualItem("group_invite_submit", {
-										Enter: { fn: "click" },
-									})}
-								/>
+								<div className="flex items-center gap-3">
+									<button className="soft w-full">Update Group</button>
+									<button
+										onClick={() => groupModule.inviteModal.onOpenChange(true)}
+										{...registerVisualItem(
+											"group_invite_trigger",
+											{ Enter: { fn: "click" } },
+											"soft w-full",
+										)}
+									>
+										Invite
+									</button>
+								</div>
+
+								<Dialog title="" description="" {...groupModule.inviteModal}>
+									<GroupInviteForm
+										groupModule={groupModule}
+										inputProps={registerVisualItem("group_invite_input", {
+											Enter: { fn: "click" },
+										})}
+										checkboxProps={registerVisualItem("group_invite_checkbox", {
+											Enter: { fn: "click" },
+										})}
+										submitProps={registerVisualItem("group_invite_submit", {
+											Enter: { fn: "click" },
+										})}
+									/>
+								</Dialog>
 								<PersonList
 									personModule={personModule}
 									dnd={dnd}

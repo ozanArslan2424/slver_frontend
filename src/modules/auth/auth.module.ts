@@ -19,7 +19,7 @@ export class AuthModule extends Module<ProfileData> {
 		private readonly request: RequestModule,
 		private readonly store: StoreModule<StoreData>,
 	) {
-		super(AuthModule.name);
+		super();
 	}
 
 	private setHeaders(data: StoreData) {

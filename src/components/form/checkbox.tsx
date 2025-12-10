@@ -10,7 +10,8 @@ type CheckboxProps = {
 	defaultValue?: boolean;
 	onChange?: (checked: boolean) => void;
 	renderChildren?: (checked: boolean) => ReactNode;
-} & ComponentProps<"button">;
+	unstyled?: boolean;
+} & Omit<ComponentProps<"button">, "onChange">;
 
 export function Checkbox({
 	id,
@@ -20,6 +21,7 @@ export function Checkbox({
 	onChange,
 	className,
 	renderChildren,
+	unstyled = false,
 	...rest
 }: CheckboxProps) {
 	const isControlled = value !== undefined;
@@ -41,7 +43,14 @@ export function Checkbox({
 
 	return (
 		<>
-			<input type="text" name={name} value={internal} readOnly className="sr-only" />
+			<input
+				type="text"
+				id={`${name}_input`}
+				name={name}
+				value={internal}
+				readOnly
+				className="sr-only"
+			/>
 			<button
 				{...rest}
 				id={id}
@@ -49,7 +58,7 @@ export function Checkbox({
 				role="checkbox"
 				aria-checked={checked}
 				onClick={handleClick}
-				className={cn("square sm", checked ? "primary" : "soft", className)}
+				className={unstyled ? className : cn("square sm", checked ? "primary" : "soft", className)}
 			>
 				{renderChildren ? renderChildren(checked) : <CheckIcon />}
 			</button>

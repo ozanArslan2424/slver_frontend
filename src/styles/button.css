@@ -16,7 +16,7 @@
 				@apply border-primary bg-primary text-primary-foreground [&_svg]:text-primary-foreground hover:bg-primary/70 hover:border-transparent active:opacity-90;
 			}
 			&.soft {
-				@apply border-primary/10 bg-primary/5 text-primary [&_svg]:text-primary hover:bg-primary/10 active:opacity-90;
+				@apply bg-primary/10 text-primary [&_svg]:text-primary hover:bg-primary/20 border-transparent active:opacity-90;
 			}
 		}
 
@@ -65,14 +65,18 @@
 		}
 
 		&.square {
-			@apply shrink-0 rounded-md [&_svg]:size-4;
+			@apply inline-flex aspect-square shrink-0 items-center justify-center rounded-lg [&_svg]:pointer-events-none [&_svg]:shrink-0;
 
-			&:not(.sm) {
-				@apply h-10 w-10 p-3;
+			&:not(.lg):not(.xl) {
+				@apply size-9 p-2 [&_svg]:size-5;
 			}
 
-			&.sm {
-				@apply h-7 w-7 p-1;
+			&.lg {
+				@apply size-10 p-2.5 font-bold [&_svg]:size-6;
+			}
+
+			&.xl {
+				@apply size-9 p-2 font-black sm:size-12 sm:p-3 [&_svg]:size-5 sm:[&_svg]:size-7;
 			}
 		}
 	}

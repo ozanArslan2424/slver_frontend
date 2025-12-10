@@ -5,7 +5,7 @@ import { useMemo } from "react";
 
 export function AppFooter() {
 	const isMobile = useIsMobile();
-	const { mode, keys } = useModeContext();
+	const { mode, keys, index } = useModeContext();
 
 	const modeColors = {
 		normal: "bg-primary text-primary-foreground",
@@ -71,7 +71,9 @@ export function AppFooter() {
 				</div>
 			</div>
 			<div className="flex items-center px-4 lg:px-12">
-				<span className="text-foreground/70 text-right font-mono text-xs whitespace-nowrap"></span>
+				<span className="text-foreground/70 text-right font-mono text-xs whitespace-nowrap">
+					{index}
+				</span>
 			</div>
 		</footer>
 	);

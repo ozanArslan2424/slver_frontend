@@ -9,6 +9,7 @@ import { useForm } from "@/hooks/use-form";
 import { useAppContext } from "@/modules/context/app.context";
 import { useModalContext } from "@/modules/context/modal.context";
 import { Help } from "@/lib/help.namespace";
+import { getErrorMessage } from "@/lib/error.utils";
 
 export type UseThingModuleReturn = ReturnType<typeof useThingModule>;
 
@@ -22,10 +23,10 @@ export function useThingModule() {
 	const statusMutation = useMutation(thing.done(handleReset));
 	const removeMutation = useMutation(thing.remove(handleReset));
 	const createMutation = useMutation(
-		thing.create(handleReset, (err) => createForm.setRootError(err.message)),
+		thing.create(handleReset, (err) => createForm.setRootError(getErrorMessage(err))),
 	);
 	const updateMutation = useMutation(
-		thing.update(handleReset, (err) => updateForm.setRootError(err.message)),
+		thing.update(handleReset, (err) => updateForm.setRootError(getErrorMessage(err))),
 	);
 
 	const updateModal = useModal();

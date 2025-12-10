@@ -22,4 +22,7 @@ export const apiRoutes = {
 		assign: "/thing/assign",
 		done: "/thing/done",
 	},
+	seenStatus: {
+		count: "/seen-status/count",
+	},
 };

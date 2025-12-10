@@ -4,7 +4,8 @@ import type { SlimMode } from "@/modules/keyboard/keyboard.schema";
 function useModeHook() {
 	const [mode, setMode] = useState<SlimMode>("normal");
 	const [keys, setKeys] = useState<string[]>([]);
-	return { mode, setMode, keys, setKeys };
+	const [index, setIndex] = useState(0);
+	return { mode, setMode, keys, setKeys, index, setIndex };
 }
 
 const ModeContext = createContext<ReturnType<typeof useModeHook> | null>(null);

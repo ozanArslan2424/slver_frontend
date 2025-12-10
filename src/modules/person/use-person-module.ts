@@ -14,14 +14,14 @@ export function usePersonModule() {
 
 	const removeMutation = useMutation(group.remove(handleReset));
 
-	const menuModal = useModal();
+	const detailModal = useModal();
 	const assignModal = useModal();
 	const removeModal = useModal();
 
-	function handleOpenMenuModal(id: PersonData["id"]) {
+	function handleOpenDetailModal(id: PersonData["id"]) {
 		const entity = person.find(id);
 		if (entity) person.setActive(entity);
-		menuModal.onOpenChange(true);
+		detailModal.onOpenChange(true);
 	}
 
 	function handleOpenRemoveModal(id: PersonData["id"]) {
@@ -51,10 +51,10 @@ export function usePersonModule() {
 	return {
 		active: person.active,
 		listQuery,
-		menuModal,
+		detailModal,
 		assignModal,
 		removeModal,
-		handleOpenMenuModal,
+		handleOpenDetailModal,
 		handleOpenRemoveModal,
 		handleRemove,
 		handleOpenAssignModal,

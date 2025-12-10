@@ -1,6 +1,8 @@
 import { useForm } from "@/hooks/use-form";
+import { useModal } from "@/hooks/use-modal";
 import { getErrorMessage } from "@/lib/error.utils";
 import { useAppContext } from "@/modules/context/app.context";
+import { useModalContext } from "@/modules/context/modal.context";
 import {
 	GroupCreateSchema,
 	GroupInviteSchema,
@@ -11,41 +13,20 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 export type UseGroupModuleReturn = ReturnType<typeof useGroupModule>;
 
 export function useGroupModule() {
+	const { setModal } = useModalContext();
 	const { group } = useAppContext();
+	const inviteModal = useModal();
 
 	const groupQuery = useQuery(group.get());
 
 	const groupCreateMutation = useMutation(
-		group.create(
-			() => {
-				createForm.reset();
-			},
-			(err) => {
-				createForm.setRootError(getErrorMessage(err));
-			},
-		),
+		group.create(handleReset, (err) => createForm.setRootError(getErrorMessage(err))),
 	);
-
 	const groupJoinMutation = useMutation(
-		group.join(
-			() => {
-				joinForm.reset();
-			},
-			(err) => {
-				joinForm.setRootError(getErrorMessage(err));
-			},
-		),
+		group.join(handleReset, (err) => joinForm.setRootError(getErrorMessage(err))),
 	);
-
 	const groupInviteMutation = useMutation(
-		group.invite(
-			() => {
-				inviteForm.reset();
-			},
-			(err) => {
-				inviteForm.setRootError(getErrorMessage(err));
-			},
-		),
+		group.invite(handleReset, (err) => inviteForm.setRootError(getErrorMessage(err))),
 	);
 
 	const createForm = useForm({
@@ -67,16 +48,22 @@ export function useGroupModule() {
 	const inviteForm = useForm({
 		schema: GroupInviteSchema,
 		mutation: groupInviteMutation,
-		defaultValues: {
-			role: false,
-		},
+		defaultValues: { role: false },
 		onSubmit: ({ values }) => {
 			groupInviteMutation.mutate(values);
 		},
 	});
 
+	function handleReset() {
+		createForm.reset();
+		joinForm.reset();
+		inviteForm.reset();
+		setModal(null);
+	}
+
 	return {
 		groupQuery,
+		inviteModal,
 		createForm,
 		joinForm,
 		inviteForm,

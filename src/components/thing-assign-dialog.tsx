@@ -26,7 +26,11 @@ export function ThingAssignModal({ personModule, thingModule, optionProps }: Ass
 	if (!thing) return null;
 
 	return (
-		<Dialog title={t("assign.label")} description={t("assign.label")} {...modal}>
+		<Dialog
+			title={t("assign.title")}
+			description={t("assign.description", { id: thing.id })}
+			{...modal}
+		>
 			<div className="flex flex-col gap-2">
 				{personList.map((person) => {
 					const props = optionProps({ personId: person.id, thingId: thing.id });

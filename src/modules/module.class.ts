@@ -1,7 +1,7 @@
 export class Module<T = never> {
-	constructor(private readonly name: string) {
+	constructor() {
 		if (import.meta.env.DEV) {
-			console.count(this.name);
+			console.count(this.constructor.name);
 		}
 	}
 

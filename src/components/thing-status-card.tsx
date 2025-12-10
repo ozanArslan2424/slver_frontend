@@ -23,7 +23,7 @@ export function ThingStatusCard({ dnd, variant, className }: ThingStatusCardProp
 			)}
 		>
 			<p className="pointer-events-none text-center text-sm font-semibold select-none">
-				{t(`${variant}.description`)}
+				{t(`status.${variant}`)}
 			</p>
 		</div>
 	);

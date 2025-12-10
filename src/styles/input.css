@@ -4,14 +4,14 @@
 	input:not(.unset),
 	textarea:not(.unset),
 	.input-like {
-		@apply placeholder:text-foreground/50 min-h-10 transition-all outline-none disabled:opacity-70;
+		@apply placeholder:text-foreground/50 min-h-10 w-full rounded-lg transition-all outline-none disabled:opacity-70;
 
 		&.ghost {
-			@apply text-foreground text-lg font-bold outline-none focus:outline-none sm:text-xl;
+			@apply text-foreground focus-visible:ring-ring text-lg font-bold ring-2 ring-transparent sm:text-xl;
 		}
 
 		&:not(.ghost) {
-			@apply hover:border-primary bg-background ring-ring border-border/70 rounded-md border px-3 py-2 text-sm shadow-xs focus-visible:ring;
+			@apply hover:border-primary bg-background border-border/70 focus-visible:ring-ring border px-3 py-2 text-sm shadow-xs ring-2 ring-transparent;
 		}
 	}
 

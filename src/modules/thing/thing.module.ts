@@ -20,7 +20,7 @@ export class ThingModule extends Module<ThingData> {
 		private readonly authModule: AuthModule,
 		private readonly personModule: PersonModule,
 	) {
-		super(ThingModule.name);
+		super();
 	}
 
 	readonly queryList = () =>

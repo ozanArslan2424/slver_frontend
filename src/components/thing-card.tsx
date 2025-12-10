@@ -31,12 +31,12 @@ export function ThingCard({ thing, className, ...rest }: ThingCardProps) {
 
 					<p className="text-foreground/70 text-xs">
 						{thing.assignedTo
-							? t("detail.fields.assignedTo.somebody", {
+							? t("detail.assignedTo.somebody", {
 									name: thing.assignedTo.name,
 								})
-							: t("detail.fields.assignedTo.nobody")}{" "}
+							: t("detail.assignedTo.nobody")}{" "}
 						{thing.dueDate &&
-							t(`detail.fields.dueDate.${thing.isDone ? "labelDone" : "labelNotDone"}`, {
+							t(`detail.dueDate.${thing.isDone ? "done" : "notDone"}`, {
 								date: timestamp(thing.dueDate).fromNow,
 							})}
 					</p>

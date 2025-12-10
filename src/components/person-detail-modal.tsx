@@ -3,14 +3,14 @@ import type { UseAuthModuleReturn } from "@/modules/auth/use-auth-module";
 import { useLanguage } from "@/modules/language/use-language";
 import type { UsePersonModuleReturn } from "@/modules/person/use-person-module";
 
-type PersonMenuModalProps = {
+type PersonDetailModalProps = {
 	personModule: UsePersonModuleReturn;
 	authModule: UseAuthModuleReturn;
 };
 
-export function PersonMenuModal({ personModule, authModule }: PersonMenuModalProps) {
+export function PersonDetailModal({ personModule, authModule }: PersonDetailModalProps) {
 	const { t } = useLanguage("person");
-	const modal = personModule.menuModal;
+	const modal = personModule.detailModal;
 	const handleOpenAssignModal = personModule.handleOpenAssignModal;
 	const handleOpenRemoveModal = personModule.handleOpenRemoveModal;
 	const person = personModule.active;

@@ -5,7 +5,7 @@ import type { QueryModule } from "@/modules/query/query.module";
 
 export class PersonModule extends Module<PersonData> {
 	constructor(private readonly queryModule: QueryModule) {
-		super(PersonModule.name);
+		super();
 	}
 
 	find(id: PersonData["id"]) {
