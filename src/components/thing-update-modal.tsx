@@ -68,7 +68,7 @@ export function ThingUpdateModal({
 										<div className="squircle size-7 font-black">
 											<CalendarPlusIcon className="size-4" />
 										</div>
-										{val ? timestamp(val).shortDate : t("form.fields.dueDate.label")}
+										{val ? timestamp(val).shortDate : t("form.dueDate.label")}
 									</div>
 									<ChevronDownIcon
 										className={cn("transition-all", open ? "rotate-180" : "rotate-0")}
@@ -106,10 +106,10 @@ export function ThingUpdateModal({
 											className="size-7 font-black"
 										/>
 										{val
-											? t("detail.fields.assignedTo.somebody", {
+											? t("detail.assignedTo.somebody", {
 													name: val.name,
 												})
-											: t("detail.fields.assignedTo.nobody")}
+											: t("detail.assignedTo.nobody")}
 									</div>
 
 									<ChevronDownIcon
