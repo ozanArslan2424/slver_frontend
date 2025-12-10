@@ -7,7 +7,7 @@
 		@apply placeholder:text-foreground/50 min-h-10 w-full rounded-lg transition-all outline-none disabled:opacity-70;
 
 		&.ghost {
-			@apply text-foreground focus-visible:ring-ring text-lg font-bold ring-2 ring-transparent sm:text-xl;
+			@apply text-foreground text-lg font-bold ring-2 ring-transparent sm:text-xl;
 		}
 
 		&:not(.ghost) {
