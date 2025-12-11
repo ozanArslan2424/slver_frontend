@@ -11,6 +11,7 @@ import { apiRoutes } from "@/api.routes";
 import i18n from "@/modules/language/language.config";
 import { createContext, use, type PropsWithChildren } from "react";
 import { QueryClientProvider } from "@tanstack/react-query";
+import type { AuthResponseData } from "@/modules/auth/auth.schema";
 
 const groupIdHeader = "x-group-id";
 const languageHeader = "x-lang";
@@ -22,8 +23,14 @@ function makeContext() {
 	});
 	const request = new RequestModule(store, {
 		baseURL: `${import.meta.env.VITE_API_URL || "http://localhost:3000"}/api`,
-		withCredentials: true,
 		refreshEndpoint: apiRoutes.auth.refresh,
+		refreshCallback: async (instance) => {
+			const res = await instance.post<AuthResponseData>(apiRoutes.auth.refresh, {
+				refreshToken: sessionStorage.getItem("refreshToken"),
+			});
+			sessionStorage.setItem("refreshToken", res.data.refreshToken);
+			return res.data.accessToken;
+		},
 		beforeRequest: (config) => {
 			const groupId = store.get("groupId");
 			if (groupId) {

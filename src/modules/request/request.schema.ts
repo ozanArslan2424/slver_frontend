@@ -1,4 +1,4 @@
-import type { AxiosRequestConfig, InternalAxiosRequestConfig } from "axios";
+import type { AxiosInstance, AxiosRequestConfig, InternalAxiosRequestConfig } from "axios";
 
 export interface RequestInterface {
 	get: <D>(url: string, config?: AxiosRequestConfig) => Promise<D>;
@@ -12,7 +12,8 @@ export interface RequestInterface {
 
 export type RequestConfig = {
 	baseURL: string;
-	withCredentials: boolean;
+	withCredentials?: boolean;
 	refreshEndpoint: string;
+	refreshCallback: (axiosInstance: AxiosInstance) => Promise<string>;
 	beforeRequest?: (config: InternalAxiosRequestConfig) => void | Promise<void>;
 };

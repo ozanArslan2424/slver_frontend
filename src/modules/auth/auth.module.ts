@@ -1,5 +1,6 @@
 import { clientRoutes } from "@/client.routes";
 import type {
+	AuthenticatedData,
 	AuthLoginData,
 	AuthRegisterData,
 	AuthResponseData,
@@ -22,9 +23,14 @@ export class AuthModule extends Module<ProfileData> {
 		super();
 	}
 
-	private setHeaders(data: StoreData) {
+	private setAuthenticatedData(data: AuthenticatedData) {
 		this.store.set("accessToken", data.accessToken);
 		this.store.set("groupId", data.groupId);
+		if (data.refreshToken) {
+			sessionStorage.setItem("refreshToken", data.refreshToken);
+		} else {
+			sessionStorage.removeItem("refreshToken");
+		}
 	}
 
 	fetchMe = () => this.request.get(apiRoutes.auth.me);
@@ -42,7 +48,8 @@ export class AuthModule extends Module<ProfileData> {
 		this.queryModule.makeMutation<AuthLoginData, AuthResponseData>({
 			mutationFn: (body) => this.request.post(apiRoutes.auth.login, body),
 			onSuccess: (res, vars) => {
-				this.setHeaders({
+				this.setAuthenticatedData({
+					refreshToken: res.refreshToken,
 					accessToken: res.accessToken,
 					groupId: res.profile.memberships.length !== 0 ? res.profile.memberships[0].groupId : null,
 				});
@@ -59,7 +66,8 @@ export class AuthModule extends Module<ProfileData> {
 		this.queryModule.makeMutation<AuthRegisterData, AuthResponseData>({
 			mutationFn: (body) => this.request.post(apiRoutes.auth.register, body),
 			onSuccess: (res, vars) => {
-				this.setHeaders({
+				this.setAuthenticatedData({
+					refreshToken: res.refreshToken,
 					accessToken: res.accessToken,
 					groupId: res.profile.memberships.length !== 0 ? res.profile.memberships[0].groupId : null,
 				});
@@ -72,11 +80,14 @@ export class AuthModule extends Module<ProfileData> {
 	logout = (onSuccess?: OnMutationSuccess) =>
 		this.queryModule.makeMutation({
 			mutationFn: async () => {
-				await this.request.post(apiRoutes.auth.logout);
+				await this.request.post(apiRoutes.auth.logout, {
+					refreshToken: sessionStorage.getItem("refreshToken"),
+				});
 			},
 			onSuccess: (res, vars) => {
 				window.location.href = clientRoutes.landing;
-				this.setHeaders({
+				this.setAuthenticatedData({
+					refreshToken: null,
 					accessToken: null,
 					groupId: null,
 				});

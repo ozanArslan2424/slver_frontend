@@ -22,8 +22,15 @@ export type AuthRegisterData = z.infer<typeof AuthRegisterSchema>;
 export type AuthResponseData = {
 	profile: PersonData;
 	accessToken: string;
+	refreshToken: string;
 };
 
 export type ProfileData = PersonData & {
 	emailVerified: boolean;
+};
+
+export type AuthenticatedData = {
+	groupId: number | null;
+	accessToken: string | null;
+	refreshToken: string | null;
 };

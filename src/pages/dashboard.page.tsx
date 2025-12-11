@@ -110,7 +110,7 @@ export function DashboardPage() {
 
 			if (sourceIsThing) {
 				const thingId = Number(prefixId(source.sourceId));
-				thingModule.handleUpdateStatus(thingId, !targetIsDone);
+				thingModule.handleUpdateStatus(thingId, targetIsDone);
 			}
 		},
 	});

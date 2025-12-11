@@ -1,4 +1,3 @@
-import type { AuthResponseData } from "@/modules/auth/auth.schema";
 import type { RequestConfig, RequestInterface } from "@/modules/request/request.schema";
 import type { StoreModule } from "@/modules/store/store.module";
 import type { StoreData } from "@/modules/store/store.schema";
@@ -7,13 +6,15 @@ import type { InternalAxiosRequestConfig, AxiosResponse, AxiosInstance } from "a
 import qs from "qs";
 
 export class RequestModule implements RequestInterface {
+	private instance: AxiosInstance;
+	private baseURL: RequestConfig["baseURL"];
+	private withCredentials?: RequestConfig["withCredentials"];
+	private refreshEndpoint: RequestConfig["refreshEndpoint"];
+	private refreshCallback: RequestConfig["refreshCallback"];
+	private beforeRequest?: RequestConfig["beforeRequest"];
+
 	private isRefreshing = false;
 	private failedQueue: ((token: string) => void)[] = [];
-	private instance: AxiosInstance;
-	private baseURL: string;
-	private withCredentials: boolean;
-	private refreshEndpoint: string;
-	private beforeRequest?: (config: InternalAxiosRequestConfig) => void;
 
 	constructor(
 		private readonly store: StoreModule<StoreData>,
@@ -22,28 +23,11 @@ export class RequestModule implements RequestInterface {
 		this.baseURL = config.baseURL;
 		this.withCredentials = config.withCredentials;
 		this.refreshEndpoint = config.refreshEndpoint;
+		this.refreshCallback = config.refreshCallback;
 		this.beforeRequest = config.beforeRequest;
 		this.instance = this.createInstance();
 		this.attachRequestInterceptor();
 		this.attachResponseInterceptor();
-	}
-
-	private getAccessToken() {
-		return this.store.get("accessToken");
-	}
-	private setAccessToken(value: string | null) {
-		this.store.set("accessToken", value);
-	}
-
-	private processQueue(token: string) {
-		for (const callback of this.failedQueue) {
-			callback(token);
-		}
-		this.failedQueue = [];
-	}
-
-	private bearer(token: string) {
-		return `Bearer ${token}`;
 	}
 
 	private createInstance() {
@@ -61,6 +45,14 @@ export class RequestModule implements RequestInterface {
 		});
 	}
 
+	private getAccessToken() {
+		return this.store.get("accessToken");
+	}
+
+	private bearer(token: string) {
+		return `Bearer ${token}`;
+	}
+
 	private attachRequestInterceptor() {
 		this.instance.interceptors.request.use(
 			(config: InternalAxiosRequestConfig) => {
@@ -75,6 +67,17 @@ export class RequestModule implements RequestInterface {
 			},
 			(err) => Promise.reject(err),
 		);
+	}
+
+	private setAccessToken(value: string | null) {
+		this.store.set("accessToken", value);
+	}
+
+	private processQueue(token: string) {
+		for (const callback of this.failedQueue) {
+			callback(token);
+		}
+		this.failedQueue = [];
 	}
 
 	private attachResponseInterceptor() {
@@ -106,8 +109,7 @@ export class RequestModule implements RequestInterface {
 				try {
 					this.isRefreshing = true;
 					this.setAccessToken(null);
-					const res = await this.instance.post<AuthResponseData>(this.refreshEndpoint);
-					const newToken = res.data.accessToken;
+					const newToken = await this.refreshCallback(this.instance);
 					this.setAccessToken(newToken);
 					this.instance.defaults.headers.common.Authorization = this.bearer(newToken);
 					config.headers.Authorization = this.bearer(newToken);
